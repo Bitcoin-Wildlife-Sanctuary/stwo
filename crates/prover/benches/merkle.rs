@@ -6,14 +6,14 @@ use num_traits::Zero;
 use stwo_prover::core::backend::simd::SimdBackend;
 use stwo_prover::core::backend::{Col, CpuBackend};
 use stwo_prover::core::fields::m31::{BaseField, N_BYTES_FELT};
-use stwo_prover::core::vcs::blake2_merkle::Blake2sMerkleHasher;
+use stwo_prover::core::vcs::bws_sha256_merkle::BWSSha256MerkleHasher;
 use stwo_prover::core::vcs::ops::MerkleOps;
 
 const LOG_N_ROWS: u32 = 16;
 
 const LOG_N_COLS: u32 = 8;
 
-fn bench_blake2s_merkle<B: MerkleOps<Blake2sMerkleHasher>>(c: &mut Criterion, id: &str) {
+fn bench_blake2s_merkle<B: MerkleOps<BWSSha256MerkleHasher>>(c: &mut Criterion, id: &str) {
     let col: Col<B, BaseField> = (0..1 << LOG_N_ROWS).map(|_| BaseField::zero()).collect();
     let cols = (0..1 << LOG_N_COLS).map(|_| col.clone()).collect_vec();
     let col_refs = cols.iter().collect_vec();

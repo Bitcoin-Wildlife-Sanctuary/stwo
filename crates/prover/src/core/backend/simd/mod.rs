@@ -4,7 +4,6 @@ use super::Backend;
 
 pub mod accumulation;
 pub mod bit_reverse;
-pub mod blake2s;
 pub mod circle;
 pub mod cm31;
 pub mod column;
@@ -16,6 +15,7 @@ pub mod m31;
 pub mod prefix_sum;
 pub mod qm31;
 pub mod quotients;
+pub mod sha256;
 mod utils;
 
 #[derive(Copy, Clone, Debug, Deserialize, Serialize)]

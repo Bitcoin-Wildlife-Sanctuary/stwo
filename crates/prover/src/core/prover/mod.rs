@@ -22,12 +22,12 @@ use crate::core::poly::BitReversedOrder;
 use crate::core::vcs::ops::MerkleOps;
 use crate::core::vcs::verifier::MerkleVerificationError;
 
-pub const LOG_BLOWUP_FACTOR: u32 = 1;
+pub const LOG_BLOWUP_FACTOR: u32 = 10;
 pub const LOG_LAST_LAYER_DEGREE_BOUND: u32 = 0;
-pub const PROOF_OF_WORK_BITS: u32 = 12;
-pub const N_QUERIES: usize = 3;
+pub const PROOF_OF_WORK_BITS: u32 = 20;
+pub const N_QUERIES: usize = 8;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StarkProof<H: MerkleHasher> {
     pub commitments: TreeVec<H::Hash>,
     pub lookup_values: LookupValues,

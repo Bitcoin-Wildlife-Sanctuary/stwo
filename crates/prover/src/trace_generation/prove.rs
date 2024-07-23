@@ -27,6 +27,13 @@ where
     C: Channel,
     H: MerkleHasher<Hash = C::Digest>,
 {
+    let max_degree = trace
+        .iter()
+        .map(|x| x.domain.log_size())
+        .chain([air.composition_log_degree_bound()])
+        .max()
+        .unwrap();
+
     // Check that traces are not too big.
     for (i, trace) in trace.iter().enumerate() {
         if trace.domain.log_size() + LOG_BLOWUP_FACTOR > MAX_CIRCLE_DOMAIN_LOG_SIZE {
@@ -56,7 +63,7 @@ where
     span.exit();
 
     let (mut commitment_scheme, interaction_elements) =
-        evaluate_and_commit_on_trace(air, channel, &twiddles, trace)?;
+        evaluate_and_commit_on_trace(air, channel, max_degree, &twiddles, trace)?;
 
     let air_prover = &air.to_air_prover();
     let components = ComponentProvers(air_prover.component_provers());
@@ -80,6 +87,7 @@ where
 pub fn evaluate_and_commit_on_trace<'a, B, H, C>(
     air: &impl AirTraceGenerator<B>,
     channel: &mut C,
+    max_degree: u32,
     twiddles: &'a TwiddleTree<B>,
     trace: ColumnVec<CircleEvaluation<B, BaseField, BitReversedOrder>>,
 ) -> Result<(CommitmentSchemeProver<'a, B, H>, InteractionElements), ProvingError>
@@ -92,7 +100,7 @@ where
     // TODO(spapini): Remove clone.
     let span = span!(Level::INFO, "Trace").entered();
     let mut tree_builder = commitment_scheme.tree_builder();
-    tree_builder.extend_evals(trace.clone());
+    tree_builder.extend_evals(trace.clone(), max_degree);
     tree_builder.commit(channel);
     span.exit();
 
@@ -103,7 +111,7 @@ where
     if !interaction_trace.is_empty() {
         let _span = span!(Level::INFO, "Interaction").entered();
         let mut tree_builder = commitment_scheme.tree_builder();
-        tree_builder.extend_evals(interaction_trace);
+        tree_builder.extend_evals(interaction_trace, max_degree);
         tree_builder.commit(channel);
     }
 
@@ -178,7 +186,7 @@ mod tests {
     use crate::core::poly::BitReversedOrder;
     use crate::core::prover::{ProvingError, VerificationError};
     use crate::core::test_utils::test_channel;
-    use crate::core::vcs::blake2_merkle::Blake2sMerkleHasher;
+    use crate::core::vcs::bws_sha256_merkle::BWSSha256MerkleHasher;
     use crate::core::{ColumnVec, InteractionElements, LookupValues};
     use crate::qm31;
     use crate::trace_generation::registry::ComponentGenerationRegistry;
@@ -330,7 +338,7 @@ mod tests {
         let trace = vec![CpuCircleEvaluation::new(domain, values)];
 
         let proof_error =
-            commit_and_prove::<_, Blake2sMerkleHasher, _>(&air, &mut test_channel(), trace)
+            commit_and_prove::<_, BWSSha256MerkleHasher, _>(&air, &mut test_channel(), trace)
                 .unwrap_err();
         assert!(matches!(
             proof_error,
@@ -359,7 +367,7 @@ mod tests {
         let trace = vec![CpuCircleEvaluation::new(domain, values)];
 
         let proof_error =
-            commit_and_prove::<_, Blake2sMerkleHasher, _>(&air, &mut test_channel(), trace)
+            commit_and_prove::<_, BWSSha256MerkleHasher, _>(&air, &mut test_channel(), trace)
                 .unwrap_err();
         assert!(matches!(
             proof_error,
@@ -382,8 +390,9 @@ mod tests {
         let values = vec![BaseField::zero(); 1 << LOG_DOMAIN_SIZE];
         let trace = vec![CpuCircleEvaluation::new(domain, values)];
 
-        let proof = commit_and_prove::<_, Blake2sMerkleHasher, _>(&air, &mut test_channel(), trace)
-            .unwrap_err();
+        let proof =
+            commit_and_prove::<_, BWSSha256MerkleHasher, _>(&air, &mut test_channel(), trace)
+                .unwrap_err();
         assert!(matches!(proof, ProvingError::ConstraintsNotSatisfied));
     }
 }

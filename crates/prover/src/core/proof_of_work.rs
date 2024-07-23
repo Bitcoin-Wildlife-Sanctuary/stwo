@@ -2,10 +2,8 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use tracing::{span, Level};
 
-use super::channel::Serializable;
-use super::vcs::blake2_hash::Blake2sHasher;
-use crate::core::channel::Channel;
-use crate::core::vcs::blake2_hash::Blake2sHash;
+use crate::core::channel::{Channel, Serializable};
+use crate::core::vcs::bws_sha256_hash::{BWSSha256Hash, BWSSha256Hasher};
 
 // TODO(ShaharS): generalize to more channels and create a from function in the hash traits.
 pub struct ProofOfWork {
@@ -62,13 +60,13 @@ impl ProofOfWork {
         }
     }
 
-    fn hash_with_nonce(&self, seed: &[u8], nonce: u64) -> Blake2sHash {
+    fn hash_with_nonce(&self, seed: &[u8], nonce: u64) -> BWSSha256Hash {
         let hash_input = seed
             .iter()
             .chain(nonce.to_le_bytes().iter())
             .cloned()
             .collect::<Vec<_>>();
-        Blake2sHasher::hash(&hash_input)
+        BWSSha256Hasher::hash(&hash_input)
     }
 }
 
@@ -95,22 +93,23 @@ pub enum ProofOfWorkVerificationError {
 
 #[cfg(test)]
 mod tests {
-    use crate::core::channel::{Blake2sChannel, Channel};
+    use crate::core::channel::{BWSSha256Channel, Channel};
     use crate::core::proof_of_work::{ProofOfWork, ProofOfWorkProof};
-    use crate::core::vcs::blake2_hash::Blake2sHash;
+    use crate::core::vcs::bws_sha256_hash::BWSSha256Hash;
 
     #[test]
     fn test_verify_proof_of_work_success() {
-        let mut channel = Blake2sChannel::new(Blake2sHash::from(vec![0; 32]));
+        let mut channel = BWSSha256Channel::new(BWSSha256Hash::from(vec![0; 32]));
+
         let proof_of_work_prover = ProofOfWork { n_bits: 11 };
-        let proof = ProofOfWorkProof { nonce: 133 };
+        let proof = ProofOfWorkProof { nonce: 3566 };
 
         proof_of_work_prover.verify(&mut channel, &proof).unwrap();
     }
 
     #[test]
     fn test_verify_proof_of_work_fail() {
-        let mut channel = Blake2sChannel::new(Blake2sHash::from(vec![0; 32]));
+        let mut channel = BWSSha256Channel::new(BWSSha256Hash::from(vec![0; 32]));
         let proof_of_work_prover = ProofOfWork { n_bits: 1 };
         let invalid_proof = ProofOfWorkProof { nonce: 0 };
 
@@ -122,8 +121,8 @@ mod tests {
     #[test]
     fn test_proof_of_work() {
         let n_bits = 12;
-        let mut prover_channel = Blake2sChannel::new(Blake2sHash::default());
-        let mut verifier_channel = Blake2sChannel::new(Blake2sHash::default());
+        let mut prover_channel = BWSSha256Channel::new(BWSSha256Hash::default());
+        let mut verifier_channel = BWSSha256Channel::new(BWSSha256Hash::default());
         let prover = ProofOfWork::new(n_bits);
         let verifier = ProofOfWork::new(n_bits);
 
