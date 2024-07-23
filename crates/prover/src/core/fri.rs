@@ -35,9 +35,9 @@ use crate::core::vcs::verifier::{MerkleVerificationError, MerkleVerifier};
 // TODO(andrew): Support different step sizes.
 #[derive(Debug, Clone, Copy)]
 pub struct FriConfig {
-    log_blowup_factor: u32,
-    log_last_layer_degree_bound: u32,
-    n_queries: usize,
+    pub log_blowup_factor: u32,
+    pub log_last_layer_degree_bound: u32,
+    pub n_queries: usize,
     // TODO(andrew): fold_steps.
 }
 
@@ -570,7 +570,7 @@ impl<H: MerkleHasher> FriVerifier<H> {
 ///
 /// The column log sizes must be unique and in descending order. Returned
 /// column opening positions are mapped by their log size.
-fn get_opening_positions(
+pub fn get_opening_positions(
     queries: &Queries,
     column_log_sizes: &[u32],
 ) -> BTreeMap<u32, SparseSubCircleDomain> {
@@ -623,7 +623,7 @@ pub enum FriVerificationError {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct CirclePolyDegreeBound {
-    log_degree_bound: u32,
+    pub log_degree_bound: u32,
 }
 
 impl CirclePolyDegreeBound {
@@ -633,7 +633,7 @@ impl CirclePolyDegreeBound {
 
     /// Maps a circle polynomial's degree bound to the degree bound of the univariate (line)
     /// polynomial it gets folded into.
-    fn fold_to_line(&self) -> LinePolyDegreeBound {
+    pub fn fold_to_line(&self) -> LinePolyDegreeBound {
         LinePolyDegreeBound {
             log_degree_bound: self.log_degree_bound - CIRCLE_TO_LINE_FOLD_STEP,
         }
@@ -653,13 +653,13 @@ impl PartialEq<LinePolyDegreeBound> for CirclePolyDegreeBound {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-struct LinePolyDegreeBound {
-    log_degree_bound: u32,
+pub struct LinePolyDegreeBound {
+    pub log_degree_bound: u32,
 }
 
 impl LinePolyDegreeBound {
     /// Returns [None] if the unfolded degree bound is smaller than the folding factor.
-    fn fold(self, n_folds: u32) -> Option<Self> {
+    pub fn fold(self, n_folds: u32) -> Option<Self> {
         if self.log_degree_bound < n_folds {
             return None;
         }
@@ -670,7 +670,7 @@ impl LinePolyDegreeBound {
 }
 
 /// A FRI proof.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FriProof<H: MerkleHasher> {
     pub inner_layers: Vec<FriLayerProof<H>>,
     pub last_layer_poly: LinePoly,
@@ -686,7 +686,7 @@ pub const CIRCLE_TO_LINE_FOLD_STEP: u32 = 1;
 /// Stores a subset of evaluations in a fri layer with their corresponding merkle decommitments.
 ///
 /// The subset corresponds to the set of evaluations needed by a FRI verifier.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FriLayerProof<H: MerkleHasher> {
     /// The subset stored corresponds to the set of evaluations the verifier doesn't have but needs
     /// to fold and verify the merkle decommitment.
@@ -697,11 +697,11 @@ pub struct FriLayerProof<H: MerkleHasher> {
 }
 
 struct FriLayerVerifier<H: MerkleHasher> {
-    degree_bound: LinePolyDegreeBound,
-    domain: LineDomain,
-    folding_alpha: SecureField,
-    layer_index: usize,
-    proof: FriLayerProof<H>,
+    pub degree_bound: LinePolyDegreeBound,
+    pub domain: LineDomain,
+    pub folding_alpha: SecureField,
+    pub layer_index: usize,
+    pub proof: FriLayerProof<H>,
 }
 
 impl<H: MerkleHasher> FriLayerVerifier<H> {
@@ -909,7 +909,7 @@ impl<B: FriOps + MerkleOps<H>, H: MerkleHasher> FriLayerProver<B, H> {
 /// Holds a foldable subset of circle polynomial evaluations.
 #[derive(Debug, Clone)]
 pub struct SparseCircleEvaluation {
-    subcircle_evals: Vec<CircleEvaluation<CpuBackend, SecureField, BitReversedOrder>>,
+    pub subcircle_evals: Vec<CircleEvaluation<CpuBackend, SecureField, BitReversedOrder>>,
 }
 
 impl SparseCircleEvaluation {
