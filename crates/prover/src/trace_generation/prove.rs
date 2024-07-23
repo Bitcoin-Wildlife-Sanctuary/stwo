@@ -4,7 +4,8 @@ use tracing::{span, Level};
 use super::{AirTraceGenerator, AirTraceVerifier, BASE_TRACE, INTERACTION_TRACE};
 use crate::core::air::{Air, AirExt, AirProverExt};
 use crate::core::backend::Backend;
-use crate::core::channel::{Blake2sChannel, Channel as _};
+use crate::core::channel::sha256::BWSSha256Channel;
+use crate::core::channel::Channel as _;
 use crate::core::fields::m31::BaseField;
 use crate::core::fields::qm31::SecureField;
 use crate::core::pcs::{CommitmentSchemeProver, CommitmentSchemeVerifier};
@@ -14,12 +15,12 @@ use crate::core::poly::BitReversedOrder;
 use crate::core::prover::{
     prove, verify, ProvingError, StarkProof, VerificationError, LOG_BLOWUP_FACTOR,
 };
-use crate::core::vcs::blake2_merkle::Blake2sMerkleHasher;
+use crate::core::vcs::bws_sha256_merkle::BWSSha256MerkleHasher;
 use crate::core::vcs::ops::MerkleOps;
 use crate::core::{ColumnVec, InteractionElements};
 
-type MerkleHasher = Blake2sMerkleHasher;
-type Channel = Blake2sChannel;
+type MerkleHasher = BWSSha256MerkleHasher;
+type Channel = BWSSha256Channel;
 
 pub fn commit_and_prove<B: Backend + MerkleOps<MerkleHasher>>(
     air: &impl AirTraceGenerator<B>,
@@ -148,7 +149,7 @@ mod tests {
     use crate::core::air::{Air, AirProver, Component, ComponentProver, ComponentTrace};
     use crate::core::backend::cpu::CpuCircleEvaluation;
     use crate::core::backend::CpuBackend;
-    use crate::core::channel::Blake2sChannel;
+    use crate::core::channel::BWSSha256Channel;
     use crate::core::circle::{CirclePoint, CirclePointIndex, Coset};
     use crate::core::fields::m31::BaseField;
     use crate::core::fields::qm31::SecureField;
@@ -182,7 +183,7 @@ mod tests {
     }
 
     impl AirTraceVerifier for TestAir<TestComponent> {
-        fn interaction_elements(&self, _channel: &mut Blake2sChannel) -> InteractionElements {
+        fn interaction_elements(&self, _channel: &mut BWSSha256Channel) -> InteractionElements {
             InteractionElements::default()
         }
     }

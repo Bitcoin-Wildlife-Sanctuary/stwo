@@ -13,21 +13,22 @@ use super::proof_of_work::ProofOfWorkVerificationError;
 use super::{ColumnVec, InteractionElements, LookupValues};
 use crate::core::air::{Air, AirExt, AirProverExt};
 use crate::core::backend::CpuBackend;
-use crate::core::channel::{Blake2sChannel, Channel as ChannelTrait};
+use crate::core::channel::sha256::BWSSha256Channel;
+use crate::core::channel::Channel as ChannelTrait;
 use crate::core::circle::CirclePoint;
 use crate::core::fields::qm31::SecureField;
 use crate::core::pcs::{CommitmentSchemeProver, CommitmentSchemeVerifier};
 use crate::core::poly::circle::CircleEvaluation;
 use crate::core::poly::BitReversedOrder;
-use crate::core::vcs::blake2_hash::Blake2sHasher;
-use crate::core::vcs::blake2_merkle::Blake2sMerkleHasher;
+use crate::core::vcs::bws_sha256_hash::BWSSha256Hasher;
+use crate::core::vcs::bws_sha256_merkle::BWSSha256MerkleHasher;
 use crate::core::vcs::hasher::Hasher;
 use crate::core::vcs::ops::MerkleOps;
 use crate::core::vcs::verifier::MerkleVerificationError;
 
-type Channel = Blake2sChannel;
-type ChannelHasher = Blake2sHasher;
-type MerkleHasher = Blake2sMerkleHasher;
+type Channel = BWSSha256Channel;
+type ChannelHasher = BWSSha256Hasher;
+type MerkleHasher = BWSSha256MerkleHasher;
 
 pub const LOG_BLOWUP_FACTOR: u32 = 1;
 pub const LOG_LAST_LAYER_DEGREE_BOUND: u32 = 0;
@@ -112,7 +113,7 @@ pub fn prove<B: Backend + MerkleOps<MerkleHasher>>(
 
 pub fn verify(
     air: &impl Air,
-    channel: &mut Blake2sChannel,
+    channel: &mut BWSSha256Channel,
     interaction_elements: &InteractionElements,
     commitment_scheme: &mut CommitmentSchemeVerifier,
     proof: StarkProof,

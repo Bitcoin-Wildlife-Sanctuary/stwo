@@ -1,19 +1,21 @@
 use super::fields::qm31::SecureField;
 
-mod blake2s;
 #[cfg(not(target_arch = "wasm32"))]
 mod poseidon252;
+pub mod sha256;
 
-pub use blake2s::Blake2sChannel;
+pub use sha256::BWSSha256Channel;
 
 pub const EXTENSION_FELTS_PER_HASH: usize = 2;
 
 #[derive(Default)]
+#[allow(unused)]
 pub struct ChannelTime {
     n_challenges: usize,
     n_sent: usize,
 }
 
+#[allow(unused)]
 impl ChannelTime {
     fn inc_sent(&mut self) {
         self.n_sent += 1;

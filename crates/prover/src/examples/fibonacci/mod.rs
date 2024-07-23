@@ -5,13 +5,14 @@ use num_traits::One;
 use self::air::{FibonacciAir, MultiFibonacciAir};
 use self::component::FibonacciComponent;
 use crate::core::backend::cpu::CpuCircleEvaluation;
-use crate::core::channel::{Blake2sChannel, Channel};
+use crate::core::channel::sha256::BWSSha256Channel;
+use crate::core::channel::Channel;
 use crate::core::fields::m31::BaseField;
 use crate::core::fields::{FieldExpOps, IntoSlice};
 use crate::core::poly::circle::{CanonicCoset, CircleEvaluation};
 use crate::core::poly::BitReversedOrder;
 use crate::core::prover::{ProvingError, StarkProof, VerificationError};
-use crate::core::vcs::blake2_hash::Blake2sHasher;
+use crate::core::vcs::bws_sha256_hash::BWSSha256Hasher;
 use crate::core::vcs::hasher::Hasher;
 use crate::trace_generation::{commit_and_prove, commit_and_verify};
 
@@ -52,18 +53,20 @@ impl Fibonacci {
 
     pub fn prove(&self) -> Result<StarkProof, ProvingError> {
         let trace = self.get_trace();
-        let channel = &mut Blake2sChannel::new(Blake2sHasher::hash(BaseField::into_slice(&[self
-            .air
-            .component
-            .claim])));
+        let channel =
+            &mut BWSSha256Channel::new(BWSSha256Hasher::hash(BaseField::into_slice(&[self
+                .air
+                .component
+                .claim])));
         commit_and_prove(&self.air, channel, vec![trace])
     }
 
     pub fn verify(&self, proof: StarkProof) -> Result<(), VerificationError> {
-        let channel = &mut Blake2sChannel::new(Blake2sHasher::hash(BaseField::into_slice(&[self
-            .air
-            .component
-            .claim])));
+        let channel =
+            &mut BWSSha256Channel::new(BWSSha256Hasher::hash(BaseField::into_slice(&[self
+                .air
+                .component
+                .claim])));
         commit_and_verify(proof, &self.air, channel)
     }
 }
@@ -97,14 +100,14 @@ impl MultiFibonacci {
 
     pub fn prove(&self) -> Result<StarkProof, ProvingError> {
         let channel =
-            &mut Blake2sChannel::new(Blake2sHasher::hash(BaseField::into_slice(&self.claims)));
+            &mut BWSSha256Channel::new(BWSSha256Hasher::hash(BaseField::into_slice(&self.claims)));
         let trace = self.get_trace();
         commit_and_prove(&self.air, channel, trace)
     }
 
     pub fn verify(&self, proof: StarkProof) -> Result<(), VerificationError> {
         let channel =
-            &mut Blake2sChannel::new(Blake2sHasher::hash(BaseField::into_slice(&self.claims)));
+            &mut BWSSha256Channel::new(BWSSha256Hasher::hash(BaseField::into_slice(&self.claims)));
         commit_and_verify(proof, &self.air, channel)
     }
 }
@@ -122,7 +125,7 @@ mod tests {
     use super::{Fibonacci, MultiFibonacci};
     use crate::core::air::accumulation::PointEvaluationAccumulator;
     use crate::core::air::{AirExt, AirProverExt, Component, ComponentTrace};
-    use crate::core::channel::{Blake2sChannel, Channel};
+    use crate::core::channel::{BWSSha256Channel, Channel};
     use crate::core::circle::CirclePoint;
     use crate::core::fields::m31::BaseField;
     use crate::core::fields::qm31::SecureField;
@@ -132,7 +135,7 @@ mod tests {
     use crate::core::prover::VerificationError;
     use crate::core::queries::Queries;
     use crate::core::utils::bit_reverse;
-    use crate::core::vcs::blake2_hash::Blake2sHasher;
+    use crate::core::vcs::bws_sha256_hash::BWSSha256Hasher;
     use crate::core::vcs::hasher::Hasher;
     use crate::core::{InteractionElements, LookupValues};
     use crate::examples::fibonacci::air::FibonacciAirGenerator;
@@ -254,11 +257,11 @@ mod tests {
 
         let trace = fib_trace_generator.write_trace();
         let channel =
-            &mut Blake2sChannel::new(Blake2sHasher::hash(BaseField::into_slice(&[CLAIM])));
+            &mut BWSSha256Channel::new(BWSSha256Hasher::hash(BaseField::into_slice(&[CLAIM])));
         let proof = commit_and_prove(&fib_trace_generator, channel, trace).unwrap();
 
         let channel =
-            &mut Blake2sChannel::new(Blake2sHasher::hash(BaseField::into_slice(&[CLAIM])));
+            &mut BWSSha256Channel::new(BWSSha256Hasher::hash(BaseField::into_slice(&[CLAIM])));
         let fib_air = Fibonacci::new(FIB_LOG_SIZE, CLAIM).air;
         commit_and_verify(proof, &fib_air, channel).unwrap();
     }

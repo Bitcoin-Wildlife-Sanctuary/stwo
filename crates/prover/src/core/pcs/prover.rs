@@ -4,7 +4,6 @@ use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use tracing::{span, Level};
 
-use super::super::channel::Blake2sChannel;
 use super::super::circle::CirclePoint;
 use super::super::fields::m31::BaseField;
 use super::super::fields::qm31::SecureField;
@@ -20,16 +19,17 @@ use super::quotients::{compute_fri_quotients, PointSample};
 use super::utils::TreeVec;
 use super::TreeColumnSpan;
 use crate::core::backend::Backend;
+use crate::core::channel::sha256::BWSSha256Channel;
 use crate::core::channel::Channel;
 use crate::core::poly::circle::{CircleEvaluation, CirclePoly};
 use crate::core::poly::twiddles::TwiddleTree;
-use crate::core::vcs::blake2_hash::Blake2sHash;
-use crate::core::vcs::blake2_merkle::Blake2sMerkleHasher;
+use crate::core::vcs::bws_sha256_hash::BWSSha256Hash;
+use crate::core::vcs::bws_sha256_merkle::BWSSha256MerkleHasher;
 use crate::core::vcs::ops::MerkleOps;
 use crate::core::vcs::prover::{MerkleDecommitment, MerkleProver};
 
-type MerkleHasher = Blake2sMerkleHasher;
-type ProofChannel = Blake2sChannel;
+type MerkleHasher = BWSSha256MerkleHasher;
+type ProofChannel = BWSSha256Channel;
 
 /// The prover side of a FRI polynomial commitment scheme. See [super].
 pub struct CommitmentSchemeProver<'a, B: Backend + MerkleOps<MerkleHasher>> {
@@ -62,7 +62,7 @@ impl<'a, B: Backend + MerkleOps<MerkleHasher>> CommitmentSchemeProver<'a, B> {
         }
     }
 
-    pub fn roots(&self) -> TreeVec<Blake2sHash> {
+    pub fn roots(&self) -> TreeVec<BWSSha256Hash> {
         self.trees.as_ref().map(|tree| tree.commitment.root())
     }
 
