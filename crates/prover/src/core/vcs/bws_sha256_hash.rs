@@ -5,7 +5,7 @@ use sha2::Digest;
 // Wrapper for the sha256 hash type.
 #[repr(align(32))]
 #[derive(Clone, Copy, PartialEq, Default, Eq)]
-pub struct BWSSha256Hash([u8; 32]);
+pub struct BWSSha256Hash(pub(crate) [u8; 32]);
 
 impl From<BWSSha256Hash> for Vec<u8> {
     fn from(value: BWSSha256Hash) -> Self {
