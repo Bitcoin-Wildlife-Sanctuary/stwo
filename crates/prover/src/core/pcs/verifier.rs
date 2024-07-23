@@ -2,7 +2,6 @@ use std::iter::zip;
 
 use itertools::Itertools;
 
-use super::super::channel::Blake2sChannel;
 use super::super::circle::CirclePoint;
 use super::super::fields::qm31::SecureField;
 use super::super::fri::{CirclePolyDegreeBound, FriConfig, FriVerifier};
@@ -13,19 +12,20 @@ use super::super::prover::{
 use super::quotients::{fri_answers, PointSample};
 use super::utils::TreeVec;
 use super::CommitmentSchemeProof;
+use crate::core::channel::sha256::BWSSha256Channel;
 use crate::core::channel::Channel;
 use crate::core::prover::VerificationError;
-use crate::core::vcs::blake2_hash::Blake2sHash;
-use crate::core::vcs::blake2_merkle::Blake2sMerkleHasher;
+use crate::core::vcs::bws_sha256_hash::BWSSha256Hash;
+use crate::core::vcs::bws_sha256_merkle::BWSSha256MerkleHasher;
 use crate::core::vcs::verifier::MerkleVerifier;
 use crate::core::ColumnVec;
 
-type ProofChannel = Blake2sChannel;
+type ProofChannel = BWSSha256Channel;
 
 /// The verifier side of a FRI polynomial commitment scheme. See [super].
 #[derive(Default)]
 pub struct CommitmentSchemeVerifier {
-    pub trees: TreeVec<MerkleVerifier<Blake2sMerkleHasher>>,
+    pub trees: TreeVec<MerkleVerifier<BWSSha256MerkleHasher>>,
 }
 
 impl CommitmentSchemeVerifier {
@@ -43,7 +43,7 @@ impl CommitmentSchemeVerifier {
     /// Reads a commitment from the prover.
     pub fn commit(
         &mut self,
-        commitment: Blake2sHash,
+        commitment: BWSSha256Hash,
         log_sizes: &[u32],
         channel: &mut ProofChannel,
     ) {
