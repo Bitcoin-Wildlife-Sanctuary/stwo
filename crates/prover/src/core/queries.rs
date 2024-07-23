@@ -132,15 +132,16 @@ impl SubCircleDomain {
 
 #[cfg(test)]
 mod tests {
-    use crate::core::channel::{Blake2sChannel, Channel};
+    use crate::core::channel::sha256::BWSSha256Channel;
+    use crate::core::channel::Channel;
     use crate::core::poly::circle::CanonicCoset;
     use crate::core::queries::Queries;
     use crate::core::utils::bit_reverse;
-    use crate::core::vcs::blake2_hash::Blake2sHash;
+    use crate::core::vcs::bws_sha256_hash::BWSSha256Hash;
 
     #[test]
     fn test_generate_queries() {
-        let channel = &mut Blake2sChannel::new(Blake2sHash::default());
+        let channel = &mut BWSSha256Channel::new(BWSSha256Hash::default());
         let log_query_size = 31;
         let n_queries = 100;
 
@@ -187,7 +188,7 @@ mod tests {
 
     #[test]
     pub fn test_conjugate_queries() {
-        let channel = &mut Blake2sChannel::new(Blake2sHash::default());
+        let channel = &mut BWSSha256Channel::new(BWSSha256Hash::default());
         let log_domain_size = 7;
         let domain = CanonicCoset::new(log_domain_size).circle_domain();
         let mut values = domain.iter().collect::<Vec<_>>();
@@ -207,7 +208,7 @@ mod tests {
 
     #[test]
     pub fn test_decommitment_positions() {
-        let channel = &mut Blake2sChannel::new(Blake2sHash::default());
+        let channel = &mut BWSSha256Channel::new(BWSSha256Hash::default());
         let log_domain_size = 31;
         let n_queries = 100;
         let fri_step_size = 3;
