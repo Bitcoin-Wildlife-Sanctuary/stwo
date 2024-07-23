@@ -17,6 +17,9 @@ thiserror = "1.0.56"
 bytemuck = "1.14.3"
 tracing = "0.1.40"
 
+## added by BWS
+sha2 = "0.10.8"
+
 [profile.bench]
 codegen-units = 1
 lto = true

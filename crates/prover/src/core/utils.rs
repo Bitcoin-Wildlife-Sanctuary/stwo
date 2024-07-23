@@ -5,7 +5,7 @@ use num_traits::{One, Zero};
 
 use super::circle::CirclePoint;
 use super::constraints::point_vanishing;
-use super::fields::m31::BaseField;
+use super::fields::m31::{BaseField, M31};
 use super::fields::qm31::SecureField;
 use super::fields::{Field, FieldExpOps};
 use super::poly::circle::CircleDomain;
@@ -183,6 +183,22 @@ pub fn point_vanish_denominator_inverses(
     let mut denom_inverses = vec![BaseField::zero(); 1 << (domain.log_size())];
     BaseField::batch_inverse(&denoms, &mut denom_inverses);
     denom_inverses
+}
+
+pub fn bws_num_to_bytes(v: M31) -> Vec<u8> {
+    let mut bytes = Vec::new();
+
+    let mut v = v.0;
+    while v > 0 {
+        bytes.push((v & 0xff) as u8);
+        v >>= 8;
+    }
+
+    if bytes.last().is_some() && bytes.last().unwrap() & 0x80 != 0 {
+        bytes.push(0);
+    }
+
+    bytes
 }
 
 #[cfg(test)]
