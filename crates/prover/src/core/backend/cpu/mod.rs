@@ -4,6 +4,7 @@ mod circle;
 mod fri;
 pub mod lookups;
 pub mod quotients;
+mod sha256;
 
 use std::fmt::Debug;
 
