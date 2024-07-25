@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use sha2::Digest;
 
 use crate::core::fields::m31::BaseField;
@@ -5,7 +6,7 @@ use crate::core::utils::bws_num_to_bytes;
 use crate::core::vcs::bws_sha256_hash::BWSSha256Hash;
 use crate::core::vcs::ops::MerkleHasher;
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Default)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Default, Deserialize, Serialize)]
 pub struct BWSSha256MerkleHasher;
 impl MerkleHasher for BWSSha256MerkleHasher {
     type Hash = BWSSha256Hash;

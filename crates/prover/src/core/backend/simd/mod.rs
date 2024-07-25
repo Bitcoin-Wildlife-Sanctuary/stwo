@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 use super::Backend;
 
 pub mod accumulation;
@@ -15,7 +17,7 @@ pub mod quotients;
 pub mod sha256;
 mod utils;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Deserialize, Serialize)]
 pub struct SimdBackend;
 
 impl Backend for SimdBackend {}

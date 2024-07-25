@@ -5,6 +5,7 @@ use std::ops::{Deref, DerefMut};
 
 use itertools::Itertools;
 use num_traits::Zero;
+use serde::{Deserialize, Serialize};
 
 use super::circle::CircleDomain;
 use super::utils::fold;
@@ -13,7 +14,7 @@ use crate::core::circle::{CirclePoint, Coset, CosetIterator};
 use crate::core::fft::ibutterfly;
 use crate::core::fields::m31::BaseField;
 use crate::core::fields::qm31::SecureField;
-use crate::core::fields::secure_column::SecureColumn;
+use crate::core::fields::secure_column::SecureColumnByCoords;
 use crate::core::fields::{ExtensionOf, FieldExpOps, FieldOps};
 use crate::core::utils::bit_reverse;
 
@@ -107,7 +108,7 @@ type LineDomainIterator =
     Map<CosetIterator<CirclePoint<BaseField>>, fn(CirclePoint<BaseField>) -> BaseField>;
 
 /// A univariate polynomial defined on a [LineDomain].
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize)]
 pub struct LinePoly {
     /// Coefficients of the polynomial in [line_ifft] algorithm's basis.
     ///
@@ -186,7 +187,7 @@ impl DerefMut for LinePoly {
 #[derive(Clone, Debug)]
 pub struct LineEvaluation<B: FieldOps<BaseField>> {
     /// Evaluations of a univariate polynomial on `domain`.
-    pub values: SecureColumn<B>,
+    pub values: SecureColumnByCoords<B>,
     domain: LineDomain,
 }
 
@@ -196,13 +197,13 @@ impl<B: FieldOps<BaseField>> LineEvaluation<B> {
     /// # Panics
     ///
     /// Panics if the number of evaluations does not match the size of the domain.
-    pub fn new(domain: LineDomain, values: SecureColumn<B>) -> Self {
+    pub fn new(domain: LineDomain, values: SecureColumnByCoords<B>) -> Self {
         assert_eq!(values.len(), domain.size());
         Self { values, domain }
     }
 
     pub fn new_zero(domain: LineDomain) -> Self {
-        Self::new(domain, SecureColumn::zeros(domain.size()))
+        Self::new(domain, SecureColumnByCoords::zeros(domain.size()))
     }
 
     /// Returns the number of evaluations.
