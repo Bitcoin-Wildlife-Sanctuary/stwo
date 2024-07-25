@@ -8,8 +8,11 @@ use super::domain::CircleDomainBitRevIterator;
 use super::m31::{PackedBaseField, LOG_N_LANES, N_LANES};
 use super::qm31::PackedSecureField;
 use super::SimdBackend;
-use crate::core::backend::cpu::quotients::{batch_random_coeffs, column_line_coeffs};
-use crate::core::backend::Column;
+use crate::core::backend::cpu::quotients::{
+    batch_random_coeffs, column_line_coeffs, BatchCoeff, LineCoeffs,
+};
+use crate::core::backend::{Backend, Col, Column, ColumnOps};
+use crate::core::fields::cm31::CM31;
 use crate::core::fields::m31::BaseField;
 use crate::core::fields::qm31::SecureField;
 use crate::core::fields::secure_column::{SecureColumnByCoords, SECURE_EXTENSION_DEGREE};
@@ -20,10 +23,16 @@ use crate::core::poly::BitReversedOrder;
 use crate::core::prover::LOG_BLOWUP_FACTOR;
 use crate::core::utils::{bit_reverse, bit_reverse_index};
 
-pub struct QuotientConstants {
-    pub line_coeffs: Vec<Vec<(SecureField, SecureField, SecureField)>>,
-    pub batch_random_coeffs: Vec<SecureField>,
-    pub denominator_inverses: Vec<CM31Column>,
+/// Holds the precomputed constant values used in each quotient evaluation.
+pub struct QuotientConstants<B: Backend + ColumnOps<CM31>> {
+    /// The line coefficients for each quotient numerator term. For more details see
+    /// [self::column_line_coeffs].
+    pub line_coeffs: LineCoeffs,
+    /// The random coefficients used to linearly combine the batched quotients For more details see
+    /// [self::batch_random_coeffs].
+    pub batch_random_coeffs: BatchCoeff,
+    /// The inverses of the denominators of the quotients.
+    pub denominator_inverses: Vec<Col<B, CM31>>,
 }
 
 impl QuotientOps for SimdBackend {
@@ -142,7 +151,7 @@ fn accumulate_quotients_on_subdomain(
 pub fn accumulate_row_quotients(
     sample_batches: &[ColumnSampleBatch],
     columns: &[&CircleEvaluation<SimdBackend, BaseField, BitReversedOrder>],
-    quotient_constants: &QuotientConstants,
+    quotient_constants: &QuotientConstants<SimdBackend>,
     quad_row: usize,
     spaced_ys: PackedBaseField,
 ) -> [PackedSecureField; 4] {
@@ -154,8 +163,7 @@ pub fn accumulate_row_quotients(
         &quotient_constants.denominator_inverses
     ) {
         let mut numerator = [PackedSecureField::zero(); 4];
-        for ((column_index, _), (a, b, c)) in zip_eq(&sample_batch.columns_and_values, line_coeffs)
-        {
+        for ((column_index, _), (a, b)) in zip_eq(&sample_batch.columns_and_values, line_coeffs) {
             let column = &columns[*column_index];
             let cvalues: [_; 4] = std::array::from_fn(|i| {
                 PackedSecureField::broadcast(*c) * column.data[(quad_row << 2) + i]
@@ -233,7 +241,7 @@ fn quotient_constants(
     sample_batches: &[ColumnSampleBatch],
     random_coeff: SecureField,
     domain: CircleDomain,
-) -> QuotientConstants {
+) -> QuotientConstants<SimdBackend> {
     let _span = span!(Level::INFO, "Quotient constants").entered();
     let line_coeffs = column_line_coeffs(sample_batches, random_coeff);
     let batch_random_coeffs = batch_random_coeffs(sample_batches, random_coeff);

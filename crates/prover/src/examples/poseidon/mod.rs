@@ -557,20 +557,21 @@ mod tests {
 
         // Setup protocol.
         let channel = &mut BWSSha256Channel::new(BWSSha256Hasher::hash(BaseField::into_slice(&[])));
-        let commitment_scheme = &mut CommitmentSchemeProver::new(LOG_BLOWUP_FACTOR);
+        let commitment_scheme = &mut CommitmentSchemeProver::new(LOG_BLOWUP_FACTOR, &twiddles);
 
         // Trace.
         let span = span!(Level::INFO, "Trace").entered();
         let trace = gen_trace(log_n_rows);
+        let max_degree = trace.iter().map(|x| x.domain.log_size()).max().unwrap();
         let mut tree_builder = commitment_scheme.tree_builder();
-        tree_builder.extend_evals(trace);
+        tree_builder.extend_evals(trace, max_degree);
         tree_builder.commit(channel);
         span.exit();
 
         // Constant trace.
         let span = span!(Level::INFO, "Constant").entered();
         let mut tree_builder = commitment_scheme.tree_builder();
-        tree_builder.extend_evals(vec![gen_is_first(log_n_rows)]);
+        tree_builder.extend_evals(vec![gen_is_first(log_n_rows)], max_degree);
         tree_builder.commit(channel);
         span.exit();
 

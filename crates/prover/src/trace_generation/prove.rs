@@ -27,6 +27,13 @@ pub fn commit_and_prove<B: Backend + MerkleOps<MerkleHasher>>(
     channel: &mut Channel,
     trace: ColumnVec<CircleEvaluation<B, BaseField, BitReversedOrder>>,
 ) -> Result<StarkProof, ProvingError> {
+    let max_degree = trace
+        .iter()
+        .map(|x| x.domain.log_size())
+        .chain([air.composition_log_degree_bound()])
+        .max()
+        .unwrap();
+
     // Check that traces are not too big.
     for (i, trace) in trace.iter().enumerate() {
         if trace.domain.log_size() + LOG_BLOWUP_FACTOR > MAX_CIRCLE_DOMAIN_LOG_SIZE {
@@ -56,7 +63,7 @@ pub fn commit_and_prove<B: Backend + MerkleOps<MerkleHasher>>(
     span.exit();
 
     let (mut commitment_scheme, interaction_elements) =
-        evaluate_and_commit_on_trace(air, channel, &twiddles, trace)?;
+        evaluate_and_commit_on_trace(air, channel, max_degree, &twiddles, trace)?;
 
     let air = air.to_air_prover();
     channel.mix_felts(
@@ -73,6 +80,7 @@ pub fn commit_and_prove<B: Backend + MerkleOps<MerkleHasher>>(
 pub fn evaluate_and_commit_on_trace<'a, B: Backend + MerkleOps<MerkleHasher>>(
     air: &impl AirTraceGenerator<B>,
     channel: &mut Channel,
+    max_degree: u32,
     twiddles: &'a TwiddleTree<B>,
     trace: ColumnVec<CircleEvaluation<B, BaseField, BitReversedOrder>>,
 ) -> Result<(CommitmentSchemeProver<'a, B>, InteractionElements), ProvingError> {
@@ -80,7 +88,7 @@ pub fn evaluate_and_commit_on_trace<'a, B: Backend + MerkleOps<MerkleHasher>>(
     // TODO(spapini): Remove clone.
     let span = span!(Level::INFO, "Trace").entered();
     let mut tree_builder = commitment_scheme.tree_builder();
-    tree_builder.extend_evals(trace.clone());
+    tree_builder.extend_evals(trace.clone(), max_degree);
     tree_builder.commit(channel);
     span.exit();
 
@@ -91,7 +99,7 @@ pub fn evaluate_and_commit_on_trace<'a, B: Backend + MerkleOps<MerkleHasher>>(
     if !interaction_trace.is_empty() {
         let _span = span!(Level::INFO, "Interaction").entered();
         let mut tree_builder = commitment_scheme.tree_builder();
-        tree_builder.extend_evals(interaction_trace);
+        tree_builder.extend_evals(interaction_trace, max_degree);
         tree_builder.commit(channel);
     }
 

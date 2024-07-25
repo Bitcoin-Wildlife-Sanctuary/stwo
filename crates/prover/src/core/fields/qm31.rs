@@ -85,6 +85,12 @@ impl Mul for QM31 {
     }
 }
 
+impl From<CM31> for QM31 {
+    fn from(value: CM31) -> Self {
+        Self(value, CM31::zero())
+    }
+}
+
 impl TryInto<M31> for QM31 {
     type Error = ();
 
