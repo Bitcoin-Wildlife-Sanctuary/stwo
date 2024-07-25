@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-use crate::core::backend::simd::column::BaseFieldVec;
+use crate::core::backend::simd::column::BaseColumn;
 use crate::core::backend::simd::SimdBackend;
 use crate::core::backend::{Column, ColumnOps};
 use crate::core::vcs::bws_sha256_hash::BWSSha256Hash;
@@ -20,7 +20,7 @@ impl MerkleOps<BWSSha256MerkleHasher> for SimdBackend {
     fn commit_on_layer(
         log_size: u32,
         prev_layer: Option<&Vec<BWSSha256Hash>>,
-        columns: &[&BaseFieldVec],
+        columns: &[&BaseColumn],
     ) -> Vec<BWSSha256Hash> {
         return (0..1 << log_size)
             .map(|i| {

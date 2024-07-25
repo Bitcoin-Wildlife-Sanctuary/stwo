@@ -6,6 +6,7 @@ use std::ops::RangeInclusive;
 
 use itertools::Itertools;
 use num_traits::Zero;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use tracing::{span, Level};
 
@@ -13,7 +14,7 @@ use super::backend::CpuBackend;
 use super::channel::Channel;
 use super::fields::m31::BaseField;
 use super::fields::qm31::SecureField;
-use super::fields::secure_column::{SecureColumn, SECURE_EXTENSION_DEGREE};
+use super::fields::secure_column::{SecureColumnByCoords, SECURE_EXTENSION_DEGREE};
 use super::fields::FieldOps;
 use super::poly::circle::{CircleEvaluation, PolyOps, SecureEvaluation};
 use super::poly::line::{LineEvaluation, LinePoly};
@@ -670,7 +671,7 @@ impl LinePolyDegreeBound {
 }
 
 /// A FRI proof.
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FriProof<H: MerkleHasher> {
     pub inner_layers: Vec<FriLayerProof<H>>,
     pub last_layer_poly: LinePoly,
@@ -686,7 +687,7 @@ pub const CIRCLE_TO_LINE_FOLD_STEP: u32 = 1;
 /// Stores a subset of evaluations in a fri layer with their corresponding merkle decommitments.
 ///
 /// The subset corresponds to the set of evaluations needed by a FRI verifier.
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FriLayerProof<H: MerkleHasher> {
     /// The subset stored corresponds to the set of evaluations the verifier doesn't have but needs
     /// to fold and verify the merkle decommitment.
@@ -728,7 +729,7 @@ impl<H: MerkleHasher> FriLayerVerifier<H> {
         let sparse_evaluation = self.extract_evaluation(&queries, &evals_at_queries)?;
 
         // TODO: When leaf values are removed from the decommitment, also remove this block.
-        let actual_decommitment_evals: SecureColumn<CpuBackend> = sparse_evaluation
+        let actual_decommitment_evals: SecureColumnByCoords<CpuBackend> = sparse_evaluation
             .subline_evals
             .iter()
             .flat_map(|e| e.values.into_iter())
@@ -1064,7 +1065,7 @@ mod tests {
     use crate::core::circle::{CirclePointIndex, Coset};
     use crate::core::fields::m31::BaseField;
     use crate::core::fields::qm31::SecureField;
-    use crate::core::fields::secure_column::SecureColumn;
+    use crate::core::fields::secure_column::SecureColumnByCoords;
     use crate::core::fields::Field;
     use crate::core::fri::{
         fold_circle_into_line, fold_line, CirclePolyDegreeBound, FriConfig, FriVerifier,
@@ -1512,7 +1513,7 @@ mod tests {
         let values = poly.evaluate(domain);
         SecureEvaluation {
             domain,
-            values: SecureColumn {
+            values: SecureColumnByCoords {
                 columns: [
                     values.values,
                     Col::<CpuBackend, BaseField>::zeros(1 << (log_degree + log_blowup_factor)),
@@ -1581,7 +1582,7 @@ mod tests {
         let values = poly.evaluate(domain);
         SecureEvaluation {
             domain,
-            values: SecureColumn {
+            values: SecureColumnByCoords {
                 columns: [
                     values.values,
                     Col::<CpuBackend, BaseField>::zeros(1 << log_domain_size),

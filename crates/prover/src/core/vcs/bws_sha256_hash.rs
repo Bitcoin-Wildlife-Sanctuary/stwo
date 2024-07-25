@@ -1,10 +1,10 @@
 use std::fmt;
-
+use serde::{Deserialize, Serialize};
 use sha2::Digest;
 
 // Wrapper for the sha256 hash type.
 #[repr(align(32))]
-#[derive(Clone, Copy, PartialEq, Default, Eq)]
+#[derive(Clone, Copy, PartialEq, Default, Eq, Deserialize, Serialize)]
 pub struct BWSSha256Hash(pub(crate) [u8; 32]);
 
 impl From<BWSSha256Hash> for Vec<u8> {
