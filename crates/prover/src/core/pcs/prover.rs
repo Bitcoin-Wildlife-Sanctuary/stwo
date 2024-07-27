@@ -158,12 +158,16 @@ impl<'a, 'b, B: Backend + MerkleOps<MerkleHasher>> TreeBuilder<'a, 'b, B> {
     pub fn extend_evals(
         &mut self,
         columns: ColumnVec<CircleEvaluation<B, BaseField, BitReversedOrder>>,
+        max_degree: u32,
     ) -> TreeColumnSpan {
         let span = span!(Level::INFO, "Interpolation for commitment").entered();
         let col_start = self.polys.len();
         let polys = columns
             .into_iter()
-            .map(|eval| eval.interpolate_with_twiddles(self.commitment_scheme.twiddles))
+            .map(|eval| {
+                eval.interpolate_with_twiddles(self.commitment_scheme.twiddles)
+                    .extend(max_degree)
+            })
             .collect_vec();
         span.exit();
         self.polys.extend(polys);

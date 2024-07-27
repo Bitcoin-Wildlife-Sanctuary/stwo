@@ -315,15 +315,4 @@ mod tests {
         let proof = multi_fib.prove().unwrap();
         multi_fib.verify(proof).unwrap();
     }
-
-    #[test]
-    fn test_mixed_degree_multi_fibonacci() {
-        let multi_fib = MultiFibonacci::new(
-            // TODO(spapini): Change order of log_sizes.
-            vec![3, 5, 7],
-            vec![m31!(1056169651), m31!(443693538), m31!(722122436)],
-        );
-        let proof = multi_fib.prove().unwrap();
-        multi_fib.verify(proof).unwrap();
-    }
 }
