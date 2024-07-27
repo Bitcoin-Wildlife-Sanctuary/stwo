@@ -35,7 +35,7 @@ pub const LOG_LAST_LAYER_DEGREE_BOUND: u32 = 0;
 pub const PROOF_OF_WORK_BITS: u32 = 20;
 pub const N_QUERIES: usize = 8;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StarkProof {
     pub commitments: TreeVec<<ChannelHasher as Hasher>::Hash>,
     pub lookup_values: LookupValues,

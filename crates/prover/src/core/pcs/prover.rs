@@ -140,7 +140,7 @@ impl<'a, B: Backend + MerkleOps<MerkleHasher>> CommitmentSchemeProver<'a, B> {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommitmentSchemeProof {
     pub sampled_values: TreeVec<ColumnVec<Vec<SecureField>>>,
     pub decommitments: TreeVec<MerkleDecommitment<MerkleHasher>>,
