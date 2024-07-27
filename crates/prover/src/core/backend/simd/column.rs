@@ -1,5 +1,4 @@
 use std::mem;
-
 use bytemuck::{cast_slice, cast_slice_mut, Zeroable};
 use itertools::{izip, Itertools};
 use num_traits::Zero;
@@ -18,6 +17,12 @@ use crate::core::fields::{FieldExpOps, FieldOps};
 impl FieldOps<BaseField> for SimdBackend {
     fn batch_inverse(column: &BaseColumn, dst: &mut BaseColumn) {
         PackedBaseField::batch_inverse(&column.data, &mut dst.data);
+    }
+}
+
+impl FieldOps<CM31> for SimdBackend {
+    fn batch_inverse(column: &Self::Column, dst: &mut Self::Column) {
+        PackedCM31::batch_inverse(&column.data, &mut dst.data);
     }
 }
 

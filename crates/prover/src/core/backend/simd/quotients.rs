@@ -16,7 +16,7 @@ use crate::core::fields::cm31::CM31;
 use crate::core::fields::m31::BaseField;
 use crate::core::fields::qm31::SecureField;
 use crate::core::fields::secure_column::{SecureColumnByCoords, SECURE_EXTENSION_DEGREE};
-use crate::core::fields::FieldExpOps;
+use crate::core::fields::{ComplexOf, FieldExpOps};
 use crate::core::pcs::quotients::{ColumnSampleBatch, QuotientOps};
 use crate::core::poly::circle::{CircleDomain, CircleEvaluation, PolyOps, SecureEvaluation};
 use crate::core::poly::BitReversedOrder;
@@ -154,6 +154,7 @@ pub fn accumulate_row_quotients(
     quotient_constants: &QuotientConstants<SimdBackend>,
     quad_row: usize,
     spaced_ys: PackedBaseField,
+    random_coeff: SecureField,
 ) -> [PackedSecureField; 4] {
     let mut row_accumulator = [PackedSecureField::zero(); 4];
     for (sample_batch, line_coeffs, batch_coeff, denominator_inverses) in izip!(
@@ -163,17 +164,17 @@ pub fn accumulate_row_quotients(
         &quotient_constants.denominator_inverses
     ) {
         let mut numerator = [PackedSecureField::zero(); 4];
+        let mut need_random_coeff = false;
         for ((column_index, _), (a, b)) in zip_eq(&sample_batch.columns_and_values, line_coeffs) {
             let column = &columns[*column_index];
-            let cvalues: [_; 4] = std::array::from_fn(|i| {
-                PackedSecureField::broadcast(*c) * column.data[(quad_row << 2) + i]
+            let values: [_; 4] = std::array::from_fn(|i| {
+                column.data[(quad_row << 2) + i]
             });
 
-            // The numerator is the line equation:
-            //   c * value - a * point.y - b;
-            // Note that a, b, c were already multilpied by random_coeff^i.
-            // See [column_line_coeffs()] for more details.
-            // This is why we only add here.
+            let randomizer = PackedSecureField::broadcast(random_coeff);
+
+            // The numberator is the line equation:
+            //   value - a * point.y - b
             // 4 consecutive point in the domain in bit reversed order are:
             //   P, -P, P + H, -P + H.
             // H being the half point (-1,0). The y values for these are
@@ -181,7 +182,8 @@ pub fn accumulate_row_quotients(
             // We use this fact to save multiplications.
             // spaced_ys are the y value in jumps of 4:
             //   P0.y, P1.y, P2.y, ...
-            let spaced_ay = PackedSecureField::broadcast(*a) * spaced_ys;
+
+            let spaced_ay = PackedCM31::broadcast(*a) * spaced_ys;
             //   t0:t1 = a*P0.y, -a*P0.y, a*P1.y, -a*P1.y, ...
             let (t0, t1) = spaced_ay.interleave(-spaced_ay);
             //   t2:t3:t4:t5 = a*P0.y, -a*P0.y, -a*P0.y, a*P0.y, a*P1.y, -a*P1.y, ...
@@ -189,8 +191,12 @@ pub fn accumulate_row_quotients(
             let (t4, t5) = t1.interleave(-t1);
             let ay = [t2, t3, t4, t5];
             for i in 0..4 {
-                numerator[i] += cvalues[i] - ay[i] - PackedSecureField::broadcast(*b);
+                if need_random_coeff {
+                    numerator[i] *= randomizer;
+                }
+                numerator[i] = numerator[i] -ay[i] +  values[i] - PackedCM31::broadcast(*b);
             }
+            need_random_coeff = true;
         }
 
         for i in 0..4 {
@@ -199,6 +205,16 @@ pub fn accumulate_row_quotients(
         }
     }
     row_accumulator
+}
+
+/// Pair vanishing for the packed representation of the points. See
+/// [crate::core::constraints::pair_vanishing] for more details.
+fn packed_pair_vanishing(
+    d: PackedCM31,
+    cross_term: PackedCM31,
+    packed_p: (PackedBaseField, PackedBaseField),
+) -> PackedCM31 {
+        cross_term + packed_p.0 - d * packed_p.1
 }
 
 fn denominator_inverses(
@@ -210,16 +226,26 @@ fn denominator_inverses(
     let flat_denominators: CM31Column = sample_batches
         .iter()
         .flat_map(|sample_batch| {
-            // Extract Pr, Pi.
-            let prx = PackedCM31::broadcast(sample_batch.point.x.0);
-            let pry = PackedCM31::broadcast(sample_batch.point.y.0);
-            let pix = PackedCM31::broadcast(sample_batch.point.x.1);
-            let piy = PackedCM31::broadcast(sample_batch.point.y.1);
+            let d = sample_batch.point.x.get_imag() * sample_batch.point.y.get_imag().inverse();
+            let cross_term = PackedCM31::broadcast(
+                d * sample_batch.point.y.get_real() - sample_batch.point.x.get_real(),
+            );
+            let d = PackedCM31::broadcast(d);
 
-            // Line equation through pr +-u pi.
-            // (p-pr)*
-            CircleDomainBitRevIterator::new(domain)
-                .map(|points| (prx - points.x) * piy - (pry - points.y) * pix)
+            (0..(1 << (domain.log_size() - LOG_N_LANES)))
+                .map(|vec_row| {
+                    // TODO(spapini): Optimize this, for the small number of columns case.
+                    let points = std::array::from_fn(|i| {
+                        domain.at(bit_reverse_index(
+                            (vec_row << LOG_N_LANES) + i,
+                            domain.log_size(),
+                        ))
+                    });
+                    let domain_points_x = PackedBaseField::from_array(points.map(|p| p.x));
+                    let domain_points_y = PackedBaseField::from_array(points.map(|p| p.y));
+                    let domain_point_vec = (domain_points_x, domain_points_y);
+                    packed_pair_vanishing(d, cross_term, domain_point_vec)
+                })
                 .collect_vec()
         })
         .collect();

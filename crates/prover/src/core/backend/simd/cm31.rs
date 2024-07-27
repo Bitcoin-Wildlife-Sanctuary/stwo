@@ -3,7 +3,6 @@ use std::ops::{Add, Mul, MulAssign, Neg, Sub};
 
 use bytemuck::{Pod, Zeroable};
 use num_traits::{One, Zero};
-
 use super::m31::{PackedM31, N_LANES};
 use crate::core::fields::cm31::CM31;
 use crate::core::fields::FieldExpOps;

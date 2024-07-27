@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 pub use cpu::CpuBackend;
-
+use crate::core::fields::cm31::CM31;
 use super::air::accumulation::AccumulationOps;
 use super::fields::m31::BaseField;
 use super::fields::qm31::SecureField;
@@ -18,6 +18,7 @@ pub trait Backend:
     + Clone
     + Debug
     + FieldOps<BaseField>
+    + FieldOps<CM31>
     + FieldOps<SecureField>
     + PolyOps
     + QuotientOps
