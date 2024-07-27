@@ -85,10 +85,6 @@ name = "merkle"
 
 [[bench]]
 harness = false
-name = "poseidon"
-
-[[bench]]
-harness = false
 name = "prefix_sum"
 
 [[bench]]
