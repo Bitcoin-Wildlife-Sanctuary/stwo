@@ -7,6 +7,7 @@ pub mod bit_reverse;
 pub mod circle;
 pub mod cm31;
 pub mod column;
+pub mod domain;
 pub mod fft;
 pub mod fri;
 pub mod lookups;
