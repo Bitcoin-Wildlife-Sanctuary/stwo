@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 pub use cpu::CpuBackend;
-use crate::core::fields::cm31::CM31;
+
 use super::air::accumulation::AccumulationOps;
 use super::fields::m31::BaseField;
 use super::fields::qm31::SecureField;
@@ -9,6 +9,7 @@ use super::fields::FieldOps;
 use super::fri::FriOps;
 use super::pcs::quotients::QuotientOps;
 use super::poly::circle::PolyOps;
+use crate::core::fields::cm31::CM31;
 
 pub mod cpu;
 pub mod simd;

@@ -4,7 +4,6 @@ use tracing::{span, Level};
 
 use super::cm31::PackedCM31;
 use super::column::CM31Column;
-use super::domain::CircleDomainBitRevIterator;
 use super::m31::{PackedBaseField, LOG_N_LANES, N_LANES};
 use super::qm31::PackedSecureField;
 use super::SimdBackend;
@@ -123,6 +122,7 @@ fn accumulate_quotients_on_subdomain(
             &quotient_constants,
             quad_row,
             spaced_ys,
+            random_coeff,
         );
         #[allow(clippy::needless_range_loop)]
         for i in 0..4 {
@@ -167,9 +167,7 @@ pub fn accumulate_row_quotients(
         let mut need_random_coeff = false;
         for ((column_index, _), (a, b)) in zip_eq(&sample_batch.columns_and_values, line_coeffs) {
             let column = &columns[*column_index];
-            let values: [_; 4] = std::array::from_fn(|i| {
-                column.data[(quad_row << 2) + i]
-            });
+            let values: [_; 4] = std::array::from_fn(|i| column.data[(quad_row << 2) + i]);
 
             let randomizer = PackedSecureField::broadcast(random_coeff);
 
@@ -194,7 +192,7 @@ pub fn accumulate_row_quotients(
                 if need_random_coeff {
                     numerator[i] *= randomizer;
                 }
-                numerator[i] = numerator[i] -ay[i] +  values[i] - PackedCM31::broadcast(*b);
+                numerator[i] = numerator[i] - ay[i] + values[i] - PackedCM31::broadcast(*b);
             }
             need_random_coeff = true;
         }
@@ -214,7 +212,7 @@ fn packed_pair_vanishing(
     cross_term: PackedCM31,
     packed_p: (PackedBaseField, PackedBaseField),
 ) -> PackedCM31 {
-        cross_term + packed_p.0 - d * packed_p.1
+    cross_term + packed_p.0 - d * packed_p.1
 }
 
 fn denominator_inverses(

@@ -85,7 +85,7 @@ impl Component for FibonacciComponent {
     }
 
     fn trace_log_degree_bounds(&self) -> TreeVec<ColumnVec<u32>> {
-        TreeVec::new(vec![vec![self.log_size]])
+        TreeVec::new(vec![vec![self.log_size + 1]])
     }
 
     fn mask_points(

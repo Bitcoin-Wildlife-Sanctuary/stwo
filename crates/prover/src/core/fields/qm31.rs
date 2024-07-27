@@ -124,22 +124,6 @@ impl ComplexOf<CM31> for QM31 {
     }
 }
 
-impl Add<CM31> for QM31 {
-    type Output = QM31;
-
-    fn add(self, rhs: CM31) -> Self::Output {
-        Self(self.0 + rhs, self.1)
-    }
-}
-
-impl Mul<CM31> for QM31 {
-    type Output = QM31;
-
-    fn mul(self, rhs: CM31) -> Self::Output {
-        Self(self.0 * rhs, self.1 * rhs)
-    }
-}
-
 #[cfg(test)]
 #[macro_export]
 macro_rules! qm31 {
