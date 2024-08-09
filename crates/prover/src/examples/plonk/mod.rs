@@ -52,7 +52,7 @@ impl FrameworkComponent for PlonkComponent {
         let b_val = eval.next_trace_mask();
         let c_val = eval.next_trace_mask();
 
-        eval.add_constraint(c_val - op * (a_val + b_val) + (E::F::one() - op) * a_val * b_val);
+        eval.add_constraint(c_val - op * (a_val + b_val) - (E::F::one() - op) * a_val * b_val);
 
         logup.push_lookup(
             &mut eval,
