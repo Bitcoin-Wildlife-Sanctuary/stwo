@@ -22,10 +22,17 @@ use crate::core::poly::BitReversedOrder;
 use crate::core::vcs::ops::MerkleOps;
 use crate::core::vcs::verifier::MerkleVerificationError;
 
+#[cfg(not(feature = "small_blowup"))]
 pub const LOG_BLOWUP_FACTOR: u32 = 10;
+#[cfg(feature = "small_blowup")]
+pub const LOG_BLOWUP_FACTOR: u32 = 5;
+
 pub const LOG_LAST_LAYER_DEGREE_BOUND: u32 = 0;
 pub const PROOF_OF_WORK_BITS: u32 = 20;
+#[cfg(not(feature = "small_blowup"))]
 pub const N_QUERIES: usize = 8;
+#[cfg(feature = "small_blowup")]
+pub const N_QUERIES: usize = 16;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StarkProof<H: MerkleHasher> {

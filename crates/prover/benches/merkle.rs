@@ -13,7 +13,7 @@ const LOG_N_ROWS: u32 = 16;
 
 const LOG_N_COLS: u32 = 8;
 
-fn bench_blake2s_merkle<B: MerkleOps<BWSSha256MerkleHasher>>(c: &mut Criterion, id: &str) {
+fn bench_sha256_merkle<B: MerkleOps<BWSSha256MerkleHasher>>(c: &mut Criterion, id: &str) {
     let col: Col<B, BaseField> = (0..1 << LOG_N_ROWS).map(|_| BaseField::zero()).collect();
     let cols = (0..1 << LOG_N_COLS).map(|_| col.clone()).collect_vec();
     let col_refs = cols.iter().collect_vec();
@@ -26,13 +26,13 @@ fn bench_blake2s_merkle<B: MerkleOps<BWSSha256MerkleHasher>>(c: &mut Criterion, 
     });
 }
 
-fn blake2s_merkle_benches(c: &mut Criterion) {
-    bench_blake2s_merkle::<SimdBackend>(c, "simd");
-    bench_blake2s_merkle::<CpuBackend>(c, "cpu");
+fn sha256_merkle_benches(c: &mut Criterion) {
+    bench_sha256_merkle::<SimdBackend>(c, "simd");
+    bench_sha256_merkle::<CpuBackend>(c, "cpu");
 }
 
 criterion_group!(
     name = benches;
     config = Criterion::default().sample_size(10);
-    targets = blake2s_merkle_benches);
+    targets = sha256_merkle_benches);
 criterion_main!(benches);

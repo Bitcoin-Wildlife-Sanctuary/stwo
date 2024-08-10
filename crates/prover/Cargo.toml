@@ -5,12 +5,11 @@ edition.workspace = true
 
 [features]
 parallel = ["rayon"]
+small_blowup = []
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-blake2.workspace = true
-blake3.workspace = true
 bytemuck = { workspace = true, features = ["derive"] }
 cfg-if = "1.0.0"
 downcast-rs = "1.2"

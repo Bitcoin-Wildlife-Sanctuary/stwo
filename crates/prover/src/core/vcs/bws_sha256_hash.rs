@@ -74,7 +74,7 @@ impl BWSSha256Hasher {
     }
 
     pub fn update(&mut self, data: &[u8]) {
-        blake2::Digest::update(&mut self.state, data);
+        self.state.update(data);
     }
 
     pub fn finalize(self) -> BWSSha256Hash {
