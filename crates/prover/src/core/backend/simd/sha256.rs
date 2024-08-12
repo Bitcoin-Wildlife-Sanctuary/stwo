@@ -1,4 +1,6 @@
 use itertools::Itertools;
+#[cfg(feature = "parallel")]
+use rayon::prelude::*;
 
 use crate::core::backend::simd::column::BaseColumn;
 use crate::core::backend::simd::SimdBackend;
@@ -22,13 +24,18 @@ impl MerkleOps<BWSSha256MerkleHasher> for SimdBackend {
         prev_layer: Option<&Vec<BWSSha256Hash>>,
         columns: &[&BaseColumn],
     ) -> Vec<BWSSha256Hash> {
-        return (0..1 << log_size)
-            .map(|i| {
-                BWSSha256MerkleHasher::hash_node(
-                    prev_layer.map(|prev_layer| (prev_layer[2 * i], prev_layer[2 * i + 1])),
-                    &columns.iter().map(|column| column.at(i)).collect_vec(),
-                )
-            })
-            .collect();
+        #[cfg(not(feature = "parallel"))]
+        let iter = 0..1 << log_size;
+
+        #[cfg(feature = "parallel")]
+        let iter = (0..1 << log_size).into_par_iter();
+
+        iter.map(|i| {
+            BWSSha256MerkleHasher::hash_node(
+                prev_layer.map(|prev_layer| (prev_layer[2 * i], prev_layer[2 * i + 1])),
+                &columns.iter().map(|column| column.at(i)).collect_vec(),
+            )
+        })
+        .collect()
     }
 }

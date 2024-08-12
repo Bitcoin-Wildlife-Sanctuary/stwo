@@ -4,6 +4,7 @@ version.workspace = true
 edition.workspace = true
 
 [features]
+default = ["parallel"]
 parallel = ["rayon"]
 small_blowup = []
 tiny_blowup = []

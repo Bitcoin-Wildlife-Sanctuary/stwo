@@ -23,7 +23,9 @@ use crate::core::vcs::ops::MerkleOps;
 use crate::core::vcs::verifier::MerkleVerificationError;
 
 #[cfg(all(feature = "tiny_blowup", feature = "small_blowup"))]
-compile_error!("feature \"tiny_blowup\" and feature \"small_blowup\" cannot be enabled at the same time");
+compile_error!(
+    "feature \"tiny_blowup\" and feature \"small_blowup\" cannot be enabled at the same time"
+);
 
 #[cfg(not(any(feature = "small_blowup", feature = "tiny_blowup")))]
 pub const LOG_BLOWUP_FACTOR: u32 = 10;
