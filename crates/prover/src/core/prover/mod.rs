@@ -184,7 +184,7 @@ where
 #[allow(clippy::type_complexity)]
 /// Structures the tree-wise sampled values into component-wise OODS values and a composition
 /// polynomial OODS value.
-fn sampled_values_to_mask(
+pub fn sampled_values_to_mask(
     components: &Components<'_>,
     sampled_values: &TreeVec<ColumnVec<Vec<SecureField>>>,
 ) -> Result<(Vec<TreeVec<Vec<Vec<SecureField>>>>, SecureField), InvalidOodsSampleStructure> {
