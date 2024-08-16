@@ -28,6 +28,45 @@ pub struct PlonkComponent {
     pub claimed_sum: SecureField,
 }
 
+// impl PlonkComponent {
+//     fn evaluate_with_hint<E: EvalAtRow>(&self, mut eval: E) {
+//         let mut logup = LogupAtRow::<2, _>::new(1, self.claimed_sum, self.log_n_rows);
+//
+//         let [a_wire] = eval.next_interaction_mask(2, [0]);
+//         let [b_wire] = eval.next_interaction_mask(2, [0]);
+//         // Note: c_wire could also be implicit: (self.eval.point() - M31_CIRCLE_GEN.into_ef()).x.
+//         //   A constant column is easier though.
+//         let [c_wire] = eval.next_interaction_mask(2, [0]);
+//         let [op] = eval.next_interaction_mask(2, [0]);
+//
+//         let mult = eval.next_trace_mask();
+//         let a_val = eval.next_trace_mask();
+//         let b_val = eval.next_trace_mask();
+//         let c_val = eval.next_trace_mask();
+//
+//         eval.add_constraint(c_val - op * (a_val + b_val) - (E::F::one() - op) * a_val * b_val);
+//
+//         logup.push_lookup_all(
+//             &mut eval,
+//             E::EF::one(),
+//             &[a_wire, a_val],
+//             &self.lookup_elements,
+//         );
+//         logup.push_lookup_all(
+//             &mut eval,
+//             E::EF::one(),
+//             &[b_wire, b_val],
+//             &self.lookup_elements,
+//         );
+//         logup.push_lookup_all(
+//             &mut eval,
+//             E::EF::from(-mult),
+//             &[c_wire, c_val],
+//             &self.lookup_elements,
+//         );
+//     }
+// }
+
 impl FrameworkComponent for PlonkComponent {
     fn log_size(&self) -> u32 {
         self.log_n_rows
@@ -54,26 +93,25 @@ impl FrameworkComponent for PlonkComponent {
 
         eval.add_constraint(c_val - op * (a_val + b_val) - (E::F::one() - op) * a_val * b_val);
 
-        logup.push_lookup(
+        logup.push_lookup_all(
             &mut eval,
             E::EF::one(),
             &[a_wire, a_val],
             &self.lookup_elements,
         );
-        logup.push_lookup(
+        logup.push_lookup_all(
             &mut eval,
             E::EF::one(),
             &[b_wire, b_val],
             &self.lookup_elements,
         );
-        logup.push_lookup(
+        logup.push_lookup_all(
             &mut eval,
             E::EF::from(-mult),
             &[c_wire, c_val],
             &self.lookup_elements,
         );
 
-        logup.finalize(&mut eval);
         eval
     }
 }
