@@ -52,26 +52,25 @@ impl FrameworkComponent for PlonkComponent {
 
         eval.add_constraint(c_val - op * (a_val + b_val) - (E::F::one() - op) * a_val * b_val);
 
-        logup.push_lookup(
+        logup.push_lookup_all(
             &mut eval,
             E::EF::one(),
             &[a_wire, a_val],
             &self.lookup_elements,
         );
-        logup.push_lookup(
+        logup.push_lookup_all(
             &mut eval,
             E::EF::one(),
             &[b_wire, b_val],
             &self.lookup_elements,
         );
-        logup.push_lookup(
+        logup.push_lookup_all(
             &mut eval,
             E::EF::from(-mult),
             &[c_wire, c_val],
             &self.lookup_elements,
         );
 
-        logup.finalize(&mut eval);
         eval
     }
 }

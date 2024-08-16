@@ -58,6 +58,39 @@ impl<const BATCH_SIZE: usize, E: EvalAtRow> LogupAtRow<BATCH_SIZE, E> {
         self.push_frac(eval, numerator, shifted_value);
     }
 
+    pub fn push_lookup_all<const N: usize>(
+        &mut self,
+        eval: &mut E,
+        numerator: E::EF,
+        values: &[E::F],
+        lookup_elements: &LookupElements<N>,
+    ) {
+        let shifted_value = lookup_elements.combine(values);
+        self.push_all(eval, numerator, shifted_value);
+    }
+
+    pub fn push_all(&mut self, eval: &mut E, numerator: E::EF, denominator: E::EF) {
+        // Compute sum_i pi/qi over batch, as a fraction, num/denom.
+        let (num, denom) = self
+            .queue
+            .iter()
+            .copied()
+            .fold((E::EF::zero(), E::EF::one()), |(p0, q0), (pi, qi)| {
+                (p0 * qi + pi * q0, qi * q0)
+            });
+
+        self.queue[0] = (numerator, denominator);
+        self.queue_size = 1;
+
+        // Add a constraint that num / denom = diff.
+        let cur_cumsum = E::combine_ef(std::array::from_fn(|_| {
+            eval.next_interaction_mask(self.interaction, [0])[0]
+        }));
+        let diff = cur_cumsum - self.prev_col_cumsum;
+        self.prev_col_cumsum = cur_cumsum;
+        eval.add_constraint(diff * denom - num);
+    }
+
     pub fn push_frac(&mut self, eval: &mut E, numerator: E::EF, denominator: E::EF) {
         if self.queue_size < BATCH_SIZE {
             self.queue[self.queue_size] = (numerator, denominator);

@@ -30,7 +30,6 @@ impl Sha256Channel {
 
 impl Channel for Sha256Channel {
     const BYTES_PER_HASH: usize = 32;
-
     fn mix_felts(&mut self, felts: &[SecureField]) {
         for felt in felts.iter() {
             let mut hasher = Sha256::new();
