@@ -71,11 +71,12 @@ impl<C: FrameworkComponent> Component for C {
         _interaction_elements: &InteractionElements,
         _lookup_values: &LookupValues,
     ) {
-        self.evaluate(PointEvaluator::new(
+        let evaluator = PointEvaluator::new(
             mask.as_ref(),
             evaluation_accumulator,
             coset_vanishing(CanonicCoset::new(self.log_size()).coset, point).inverse(),
-        ));
+        );
+        self.evaluate(evaluator);
     }
 }
 
