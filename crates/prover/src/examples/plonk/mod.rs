@@ -70,7 +70,7 @@ impl FrameworkComponent for PlonkComponent {
             &[c_wire, c_val],
             &self.lookup_elements,
         );
-        
+    
         logup.finalize(&mut eval);
         eval
     }
