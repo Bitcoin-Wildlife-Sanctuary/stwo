@@ -31,7 +31,6 @@ impl<'a> PointEvaluator<'a> {
         }
     }
 }
-
 impl<'a> EvalAtRow for PointEvaluator<'a> {
     type F = SecureField;
     type EF = SecureField;
