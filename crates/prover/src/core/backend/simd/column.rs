@@ -200,7 +200,7 @@ impl FromIterator<PackedCM31> for CM31Column {
 /// A mutable slice of a BaseColumn.
 pub struct BaseColumnMutSlice<'a>(pub &'a mut [PackedBaseField]);
 
-impl<'a> BaseColumnMutSlice<'a> {
+impl BaseColumnMutSlice<'_> {
     pub fn at(&self, index: usize) -> BaseField {
         self.0[index / N_LANES].to_array()[index % N_LANES]
     }
@@ -292,7 +292,7 @@ impl FromIterator<PackedSecureField> for SecureColumn {
 /// A mutable slice of a SecureColumnByCoords.
 pub struct SecureColumnByCoordsMutSlice<'a>(pub [BaseColumnMutSlice<'a>; SECURE_EXTENSION_DEGREE]);
 
-impl<'a> SecureColumnByCoordsMutSlice<'a> {
+impl SecureColumnByCoordsMutSlice<'_> {
     /// # Safety
     ///
     /// `vec_index` must be a valid index.

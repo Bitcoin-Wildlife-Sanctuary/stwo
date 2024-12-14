@@ -135,7 +135,7 @@ impl<'a, F: ExtensionOf<BaseField>> CosetSubEvaluation<'a, F> {
     }
 }
 
-impl<'a, F: ExtensionOf<BaseField>> Index<isize> for CosetSubEvaluation<'a, F> {
+impl<F: ExtensionOf<BaseField>> Index<isize> for CosetSubEvaluation<'_, F> {
     type Output = F;
 
     fn index(&self, index: isize) -> &Self::Output {
@@ -145,7 +145,7 @@ impl<'a, F: ExtensionOf<BaseField>> Index<isize> for CosetSubEvaluation<'a, F> {
     }
 }
 
-impl<'a, F: ExtensionOf<BaseField>> Index<usize> for CosetSubEvaluation<'a, F> {
+impl<F: ExtensionOf<BaseField>> Index<usize> for CosetSubEvaluation<'_, F> {
     type Output = F;
 
     fn index(&self, index: usize) -> &Self::Output {

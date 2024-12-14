@@ -155,7 +155,7 @@ pub struct TreeBuilder<'a, 'b, B: BackendForChannel<MC>, MC: MerkleChannel> {
     commitment_scheme: &'a mut CommitmentSchemeProver<'b, B, MC>,
     polys: ColumnVec<CirclePoly<B>>,
 }
-impl<'a, 'b, B: BackendForChannel<MC>, MC: MerkleChannel> TreeBuilder<'a, 'b, B, MC> {
+impl<B: BackendForChannel<MC>, MC: MerkleChannel> TreeBuilder<'_, '_, B, MC> {
     pub fn extend_evals(
         &mut self,
         columns: ColumnVec<CircleEvaluation<B, BaseField, BitReversedOrder>>,

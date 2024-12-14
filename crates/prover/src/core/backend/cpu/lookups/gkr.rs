@@ -290,7 +290,7 @@ enum MleExpr<'a, F: Field> {
     Mle(&'a Mle<CpuBackend, F>),
 }
 
-impl<'a, F: Field> Index<usize> for MleExpr<'a, F> {
+impl<F: Field> Index<usize> for MleExpr<'_, F> {
     type Output = F;
 
     fn index(&self, index: usize) -> &F {
