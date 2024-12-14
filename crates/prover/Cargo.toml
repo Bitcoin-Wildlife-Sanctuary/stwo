@@ -14,7 +14,6 @@ tiny_blowup = []
 [dependencies]
 bytemuck = { workspace = true, features = ["derive", "extern_crate_alloc"] }
 cfg-if = "1.0.0"
-downcast-rs = "1.2"
 educe.workspace = true
 hex.workspace = true
 itertools.workspace = true

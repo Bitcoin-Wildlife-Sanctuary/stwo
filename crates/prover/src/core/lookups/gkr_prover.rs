@@ -297,7 +297,7 @@ pub struct GkrMultivariatePolyOracle<'a, B: GkrOps> {
     pub lambda: SecureField,
 }
 
-impl<'a, B: GkrOps> MultivariatePolyOracle for GkrMultivariatePolyOracle<'a, B> {
+impl<B: GkrOps> MultivariatePolyOracle for GkrMultivariatePolyOracle<'_, B> {
     fn n_variables(&self) -> usize {
         self.input_layer.n_variables() - 1
     }
@@ -468,7 +468,7 @@ pub fn prove_batch<B: GkrOps>(
 
         // Seed the channel with the layer masks.
         for (&instance, mask) in zip(&sumcheck_instances, &masks) {
-            channel.mix_felts(mask.columns().flatten());
+            channel.mix_felts(mask.columns().as_flattened());
             layer_masks_by_instance[instance].push(mask.clone());
         }
 

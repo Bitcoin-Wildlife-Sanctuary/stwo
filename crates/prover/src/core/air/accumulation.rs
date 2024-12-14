@@ -161,7 +161,7 @@ pub struct ColumnAccumulator<'a, B: Backend> {
     pub random_coeff_powers: Vec<SecureField>,
     pub col: &'a mut SecureColumnByCoords<B>,
 }
-impl<'a> ColumnAccumulator<'a, CpuBackend> {
+impl ColumnAccumulator<'_, CpuBackend> {
     pub fn accumulate(&mut self, index: usize, evaluation: SecureField) {
         let val = self.col.at(index) + evaluation;
         self.col.set(index, val);
