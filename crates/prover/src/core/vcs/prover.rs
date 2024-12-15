@@ -65,7 +65,7 @@ impl<B: MerkleOps<H>, H: MerkleHasher> MerkleProver<B, H> {
     /// # Arguments
     ///
     /// * `queries_per_log_size` - A map from log_size to a vector of queries for columns of that
-    ///  log_size.
+    ///   log_size.
     /// * `columns` - A vector of references to columns.
     ///
     /// # Returns
