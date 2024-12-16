@@ -7,7 +7,6 @@ version = "0.1.1"
 edition = "2021"
 
 [workspace.dependencies]
-blake2 = "0.10.6"
 educe = "0.5.0"
 hex = "0.4.3"
 itertools = "0.12.0"
@@ -17,6 +16,7 @@ bytemuck = "1.14.3"
 tracing = "0.1.40"
 indexmap = "2.2.6"
 sha2 = "0.10.8"
+blake3 = "1.5.5"
 
 [profile.bench]
 codegen-units = 1

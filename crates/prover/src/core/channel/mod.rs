@@ -9,6 +9,10 @@ pub use poseidon252::Poseidon252Channel;
 pub mod sha256;
 pub use sha256::Sha256Channel;
 
+use crate::core::fields::m31::M31;
+
+pub mod blake3;
+
 pub const EXTENSION_FELTS_PER_HASH: usize = 2;
 
 #[derive(Clone, Default)]
@@ -51,4 +55,15 @@ pub trait MerkleChannel: Default {
     type C: Channel;
     type H: MerkleHasher;
     fn mix_root(channel: &mut Self::C, root: <Self::H as MerkleHasher>::Hash);
+}
+
+pub(crate) fn extract_common(hash: &[u8]) -> M31 {
+    let mut bytes = [0u8; 4];
+    bytes.copy_from_slice(&hash[0..4]);
+
+    let mut res = u32::from_le_bytes(bytes);
+    res &= 0x7fffffff;
+    res %= (1 << 31) - 1;
+
+    M31::from(res)
 }

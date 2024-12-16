@@ -10,5 +10,10 @@ pub mod sha256_merkle;
 mod utils;
 pub mod verifier;
 
+pub mod blake3_hash;
+pub mod blake3_merkle;
+
+pub mod poseidon31_hash;
+
 #[cfg(test)]
 mod test_utils;

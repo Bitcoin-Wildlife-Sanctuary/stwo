@@ -14,6 +14,7 @@
     trait_upcasting,
     trivial_bounds
 )]
+
 pub mod constraint_framework;
 pub mod core;
 pub mod examples;

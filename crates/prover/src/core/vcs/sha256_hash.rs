@@ -19,7 +19,7 @@ impl From<Vec<u8>> for Sha256Hash {
         Self(
             value
                 .try_into()
-                .expect("Failed converting Vec<u8> to BWSSha256Hash type"),
+                .expect("Failed converting Vec<u8> to Sha256Hash type"),
         )
     }
 }
@@ -29,7 +29,7 @@ impl From<&[u8]> for Sha256Hash {
         Self(
             value
                 .try_into()
-                .expect("Failed converting &[u8] to BWSSha256Hash Type!"),
+                .expect("Failed converting &[u8] to Sha256Hash type"),
         )
     }
 }
@@ -105,11 +105,10 @@ impl Sha256Hasher {
 #[cfg(test)]
 mod tests {
     use super::Sha256Hasher;
-    use crate::core::vcs::sha256_hash;
 
     #[test]
     fn single_hash_test() {
-        let hash_a = sha256_hash::Sha256Hasher::hash(b"a");
+        let hash_a = Sha256Hasher::hash(b"a");
         assert_eq!(
             hash_a.to_string(),
             "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb"
