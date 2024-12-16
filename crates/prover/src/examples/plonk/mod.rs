@@ -8,15 +8,14 @@ use crate::core::backend::simd::column::BaseColumn;
 use crate::core::backend::simd::m31::LOG_N_LANES;
 use crate::core::backend::simd::qm31::PackedSecureField;
 use crate::core::backend::simd::SimdBackend;
-use crate::core::backend::Column;
-use crate::core::channel::Sha256Channel;
-use crate::core::fields::m31::BaseField;
+use crate::core::backend::{BackendForChannel, Column};
+use crate::core::channel::MerkleChannel;
+use crate::core::fields::m31::{BaseField, M31};
 use crate::core::fields::qm31::SecureField;
 use crate::core::pcs::{CommitmentSchemeProver, PcsConfig};
 use crate::core::poly::circle::{CanonicCoset, CircleEvaluation, PolyOps};
 use crate::core::poly::BitReversedOrder;
 use crate::core::prover::{prove, StarkProof};
-use crate::core::vcs::sha256_merkle::Sha256MerkleHasher;
 use crate::core::{ColumnVec, InteractionElements};
 
 #[derive(Clone)]
@@ -138,11 +137,13 @@ pub fn gen_interaction_trace(
     logup_gen.finalize()
 }
 
-#[allow(unused)]
-pub fn prove_fibonacci_plonk(
+pub fn prove_fibonacci_plonk<MC: MerkleChannel>(
     log_n_rows: u32,
     config: PcsConfig,
-) -> (PlonkComponent, StarkProof<Sha256MerkleHasher>) {
+) -> (PlonkComponent, StarkProof<MC::H>)
+where
+    SimdBackend: BackendForChannel<MC>,
+{
     assert!(log_n_rows >= LOG_N_LANES);
 
     // Prepare a fibonacci circuit.
@@ -174,7 +175,7 @@ pub fn prove_fibonacci_plonk(
     span.exit();
 
     // Setup protocol.
-    let channel = &mut Sha256Channel::default();
+    let channel = &mut MC::C::default();
     let commitment_scheme = &mut CommitmentSchemeProver::new(config, &twiddles);
 
     // Trace.
@@ -204,7 +205,7 @@ pub fn prove_fibonacci_plonk(
         chain!([circuit.a_wire, circuit.b_wire, circuit.c_wire, circuit.op]
             .into_iter()
             .map(|col| {
-                CircleEvaluation::<SimdBackend, _, BitReversedOrder>::new(
+                CircleEvaluation::<SimdBackend, M31, BitReversedOrder>::new(
                     CanonicCoset::new(log_n_rows).circle_domain(),
                     col,
                 )
@@ -222,7 +223,7 @@ pub fn prove_fibonacci_plonk(
         claimed_sum,
     };
 
-    let proof = prove::<SimdBackend, _>(
+    let proof = prove::<SimdBackend, MC>(
         &[&component],
         channel,
         &InteractionElements::default(),
@@ -238,11 +239,11 @@ mod tests {
     use std::env;
 
     use crate::constraint_framework::logup::LookupElements;
-    use crate::core::channel::Sha256Channel;
+    use crate::core::channel::blake3::Blake3Channel;
     use crate::core::fri::FriConfig;
     use crate::core::pcs::{CommitmentSchemeVerifier, PcsConfig, TreeVec};
     use crate::core::prover::verify;
-    use crate::core::vcs::sha256_merkle::Sha256MerkleChannel;
+    use crate::core::vcs::blake3_merkle::Blake3MerkleChannel;
     use crate::core::InteractionElements;
     use crate::examples::plonk::prove_fibonacci_plonk;
 
@@ -259,12 +260,13 @@ mod tests {
         };
 
         // Prove.
-        let (component, proof) = prove_fibonacci_plonk(log_n_instances, config);
+        let (component, proof) =
+            prove_fibonacci_plonk::<Blake3MerkleChannel>(log_n_instances, config);
 
         // Verify.
         // TODO: Create Air instance independently.
-        let channel = &mut Sha256Channel::default();
-        let commitment_scheme = &mut CommitmentSchemeVerifier::<Sha256MerkleChannel>::new(config);
+        let channel = &mut Blake3Channel::default();
+        let commitment_scheme = &mut CommitmentSchemeVerifier::<Blake3MerkleChannel>::new(config);
 
         // Decommit.
         // Retrieve the expected column sizes in each commitment interaction, from the AIR.

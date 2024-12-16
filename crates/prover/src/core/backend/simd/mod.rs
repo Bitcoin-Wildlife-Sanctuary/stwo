@@ -1,10 +1,12 @@
 use serde::{Deserialize, Serialize};
 
 use super::{Backend, BackendForChannel};
+use crate::core::vcs::blake3_merkle::Blake3MerkleChannel;
 use crate::core::vcs::sha256_merkle::Sha256MerkleChannel;
 
 pub mod accumulation;
 pub mod bit_reverse;
+pub mod blake3;
 pub mod circle;
 pub mod cm31;
 pub mod column;
@@ -26,3 +28,4 @@ pub struct SimdBackend;
 
 impl Backend for SimdBackend {}
 impl BackendForChannel<Sha256MerkleChannel> for SimdBackend {}
+impl BackendForChannel<Blake3MerkleChannel> for SimdBackend {}
