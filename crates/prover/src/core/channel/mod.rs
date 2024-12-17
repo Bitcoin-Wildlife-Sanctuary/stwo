@@ -12,6 +12,9 @@ pub use sha256::Sha256Channel;
 use crate::core::fields::m31::M31;
 
 pub mod blake3;
+pub use blake3::Blake3Channel;
+
+pub mod poseidon31;
 
 pub const EXTENSION_FELTS_PER_HASH: usize = 2;
 

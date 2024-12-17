@@ -17,6 +17,7 @@ tracing = "0.1.40"
 indexmap = "2.2.6"
 sha2 = "0.10.8"
 blake3 = "1.5.5"
+poseidon2-m31 = { git = "https://github.com/Bitcoin-Wildlife-Sanctuary/poseidon2-m31" }
 
 [profile.bench]
 codegen-units = 1

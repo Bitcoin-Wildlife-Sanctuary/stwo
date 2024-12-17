@@ -25,3 +25,33 @@ impl std::fmt::Display for Poseidon31Hash {
 }
 
 impl super::hash::Hash for Poseidon31Hash {}
+
+impl Poseidon31Hash {
+    pub fn as_limbs(&self) -> [u32; 8] {
+        [
+            self.0[0].0,
+            self.0[1].0,
+            self.0[2].0,
+            self.0[3].0,
+            self.0[4].0,
+            self.0[5].0,
+            self.0[6].0,
+            self.0[7].0,
+        ]
+    }
+}
+
+impl From<[u32; 8]> for Poseidon31Hash {
+    fn from(value: [u32; 8]) -> Self {
+        Self([
+            M31::from(value[0]),
+            M31::from(value[1]),
+            M31::from(value[2]),
+            M31::from(value[3]),
+            M31::from(value[4]),
+            M31::from(value[5]),
+            M31::from(value[6]),
+            M31::from(value[7]),
+        ])
+    }
+}

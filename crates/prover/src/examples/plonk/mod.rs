@@ -240,15 +240,19 @@ mod tests {
 
     use crate::constraint_framework::logup::LookupElements;
     use crate::core::channel::blake3::Blake3Channel;
+    use crate::core::channel::poseidon31::Poseidon31Channel;
+    use crate::core::channel::Sha256Channel;
     use crate::core::fri::FriConfig;
     use crate::core::pcs::{CommitmentSchemeVerifier, PcsConfig, TreeVec};
     use crate::core::prover::verify;
     use crate::core::vcs::blake3_merkle::Blake3MerkleChannel;
+    use crate::core::vcs::poseidon31_merkle::Poseidon31MerkleChannel;
+    use crate::core::vcs::sha256_merkle::Sha256MerkleChannel;
     use crate::core::InteractionElements;
     use crate::examples::plonk::prove_fibonacci_plonk;
 
     #[test_log::test]
-    fn test_simd_plonk_prove() {
+    fn test_simd_plonk_prove_blake3() {
         // Get from environment variable:
         let log_n_instances = env::var("LOG_N_INSTANCES")
             .unwrap_or_else(|_| "5".to_string())
@@ -267,6 +271,111 @@ mod tests {
         // TODO: Create Air instance independently.
         let channel = &mut Blake3Channel::default();
         let commitment_scheme = &mut CommitmentSchemeVerifier::<Blake3MerkleChannel>::new(config);
+
+        // Decommit.
+        // Retrieve the expected column sizes in each commitment interaction, from the AIR.
+        let max_degree = log_n_instances + 1;
+
+        let sizes = TreeVec::new(vec![
+            vec![max_degree; 4],
+            vec![max_degree; 8],
+            vec![max_degree; 4],
+        ]);
+
+        // Trace columns.
+        commitment_scheme.commit(proof.commitments[0], &sizes[0], channel);
+        // Draw lookup element.
+        let lookup_elements = LookupElements::<2>::draw(channel);
+        assert_eq!(lookup_elements, component.lookup_elements);
+        // TODO(spapini): Check claimed sum against first and last instances.
+        // Interaction columns.
+        commitment_scheme.commit(proof.commitments[1], &sizes[1], channel);
+        // Constant columns.
+        commitment_scheme.commit(proof.commitments[2], &sizes[2], channel);
+
+        verify(
+            &[&component],
+            channel,
+            &InteractionElements::default(),
+            commitment_scheme,
+            proof,
+        )
+        .unwrap();
+    }
+
+    #[test_log::test]
+    fn test_simd_plonk_prove_sha256() {
+        // Get from environment variable:
+        let log_n_instances = env::var("LOG_N_INSTANCES")
+            .unwrap_or_else(|_| "5".to_string())
+            .parse::<u32>()
+            .unwrap();
+        let config = PcsConfig {
+            pow_bits: 10,
+            fri_config: FriConfig::new(0, 4, 64),
+        };
+
+        // Prove.
+        let (component, proof) =
+            prove_fibonacci_plonk::<Sha256MerkleChannel>(log_n_instances, config);
+
+        // Verify.
+        // TODO: Create Air instance independently.
+        let channel = &mut Sha256Channel::default();
+        let commitment_scheme = &mut CommitmentSchemeVerifier::<Sha256MerkleChannel>::new(config);
+
+        // Decommit.
+        // Retrieve the expected column sizes in each commitment interaction, from the AIR.
+        let max_degree = log_n_instances + 1;
+
+        let sizes = TreeVec::new(vec![
+            vec![max_degree; 4],
+            vec![max_degree; 8],
+            vec![max_degree; 4],
+        ]);
+
+        // Trace columns.
+        commitment_scheme.commit(proof.commitments[0], &sizes[0], channel);
+        // Draw lookup element.
+        let lookup_elements = LookupElements::<2>::draw(channel);
+        assert_eq!(lookup_elements, component.lookup_elements);
+        // TODO(spapini): Check claimed sum against first and last instances.
+        // Interaction columns.
+        commitment_scheme.commit(proof.commitments[1], &sizes[1], channel);
+        // Constant columns.
+        commitment_scheme.commit(proof.commitments[2], &sizes[2], channel);
+
+        verify(
+            &[&component],
+            channel,
+            &InteractionElements::default(),
+            commitment_scheme,
+            proof,
+        )
+        .unwrap();
+    }
+
+    #[test_log::test]
+    fn test_simd_plonk_prove_poseidon31() {
+        // Get from environment variable:
+        let log_n_instances = env::var("LOG_N_INSTANCES")
+            .unwrap_or_else(|_| "5".to_string())
+            .parse::<u32>()
+            .unwrap();
+        let config = PcsConfig {
+            pow_bits: 10,
+            fri_config: FriConfig::new(0, 4, 64),
+        };
+
+        // Prove.
+        let (component, proof) =
+            prove_fibonacci_plonk::<Poseidon31MerkleChannel>(log_n_instances, config);
+
+        // Verify.
+        // TODO: Create Air instance independently.
+        let channel = &mut Poseidon31Channel::default();
+        let commitment_scheme =
+            &mut CommitmentSchemeVerifier::<Poseidon31MerkleChannel>::new(config);
 
         // Decommit.
         // Retrieve the expected column sizes in each commitment interaction, from the AIR.
