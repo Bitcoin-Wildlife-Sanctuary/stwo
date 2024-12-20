@@ -37,6 +37,7 @@ impl FrameworkComponent for PlonkComponent {
     fn evaluate<E: EvalAtRow>(&self, mut eval: E) -> E {
         let mut logup = LogupAtRow::<2, _>::new(1, self.claimed_sum, self.log_n_rows);
 
+        let [mult] = eval.next_interaction_mask(2, [0]);
         let [a_wire] = eval.next_interaction_mask(2, [0]);
         let [b_wire] = eval.next_interaction_mask(2, [0]);
         // Note: c_wire could also be implicit: (self.eval.point() - M31_CIRCLE_GEN.into_ef()).x.
@@ -44,7 +45,6 @@ impl FrameworkComponent for PlonkComponent {
         let [c_wire] = eval.next_interaction_mask(2, [0]);
         let [op] = eval.next_interaction_mask(2, [0]);
 
-        let mult = eval.next_trace_mask();
         let a_val = eval.next_trace_mask();
         let b_val = eval.next_trace_mask();
         let c_val = eval.next_trace_mask();
@@ -93,15 +93,10 @@ pub fn gen_trace(
     let _span = span!(Level::INFO, "Generation").entered();
 
     let domain = CanonicCoset::new(log_size).circle_domain();
-    [
-        &circuit.mult,
-        &circuit.a_val,
-        &circuit.b_val,
-        &circuit.c_val,
-    ]
-    .into_iter()
-    .map(|eval| CircleEvaluation::<SimdBackend, _, BitReversedOrder>::new(domain, eval.clone()))
-    .collect_vec()
+    [&circuit.a_val, &circuit.b_val, &circuit.c_val]
+        .into_iter()
+        .map(|eval| CircleEvaluation::<SimdBackend, _, BitReversedOrder>::new(domain, eval.clone()))
+        .collect_vec()
 }
 
 pub fn gen_interaction_trace(
@@ -202,14 +197,20 @@ where
     let span = span!(Level::INFO, "Constant").entered();
     let mut tree_builder = commitment_scheme.tree_builder();
     tree_builder.extend_evals(
-        chain!([circuit.a_wire, circuit.b_wire, circuit.c_wire, circuit.op]
-            .into_iter()
-            .map(|col| {
-                CircleEvaluation::<SimdBackend, M31, BitReversedOrder>::new(
-                    CanonicCoset::new(log_n_rows).circle_domain(),
-                    col,
-                )
-            }))
+        chain!([
+            circuit.mult,
+            circuit.a_wire,
+            circuit.b_wire,
+            circuit.c_wire,
+            circuit.op
+        ]
+        .into_iter()
+        .map(|col| {
+            CircleEvaluation::<SimdBackend, M31, BitReversedOrder>::new(
+                CanonicCoset::new(log_n_rows).circle_domain(),
+                col,
+            )
+        }))
         .collect_vec(),
         max_degree,
     );
@@ -277,9 +278,9 @@ mod tests {
         let max_degree = log_n_instances + 1;
 
         let sizes = TreeVec::new(vec![
-            vec![max_degree; 4],
+            vec![max_degree; 3],
             vec![max_degree; 8],
-            vec![max_degree; 4],
+            vec![max_degree; 5],
         ]);
 
         // Trace columns.
@@ -329,9 +330,9 @@ mod tests {
         let max_degree = log_n_instances + 1;
 
         let sizes = TreeVec::new(vec![
-            vec![max_degree; 4],
+            vec![max_degree; 3],
             vec![max_degree; 8],
-            vec![max_degree; 4],
+            vec![max_degree; 5],
         ]);
 
         // Trace columns.
@@ -382,9 +383,9 @@ mod tests {
         let max_degree = log_n_instances + 1;
 
         let sizes = TreeVec::new(vec![
-            vec![max_degree; 4],
+            vec![max_degree; 3],
             vec![max_degree; 8],
-            vec![max_degree; 4],
+            vec![max_degree; 5],
         ]);
 
         // Trace columns.
