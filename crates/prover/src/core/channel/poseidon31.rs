@@ -7,7 +7,7 @@ use crate::core::fields::secure_column::SECURE_EXTENSION_DEGREE;
 
 #[derive(Clone, Default)]
 pub struct Poseidon31Channel {
-    sponge: Poseidon31Sponge,
+    pub sponge: Poseidon31Sponge,
 }
 
 impl Poseidon31Channel {
