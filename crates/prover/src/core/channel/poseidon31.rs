@@ -11,18 +11,14 @@ pub struct Poseidon31Channel {
 }
 
 impl Poseidon31Channel {
-    fn draw_base_felts(&mut self) -> [BaseField; 8] {
-        let u32s = self.sponge.squeeze(8);
+    fn draw_base_felts(&mut self) -> [BaseField; 4] {
+        let u32s = self.sponge.squeeze(4);
 
         [
             BaseField::from(u32s[0]),
             BaseField::from(u32s[1]),
             BaseField::from(u32s[2]),
             BaseField::from(u32s[3]),
-            BaseField::from(u32s[4]),
-            BaseField::from(u32s[5]),
-            BaseField::from(u32s[6]),
-            BaseField::from(u32s[7]),
         ]
     }
 }
@@ -64,7 +60,7 @@ impl Channel for Poseidon31Channel {
     }
 
     fn draw_felt(&mut self) -> SecureField {
-        let felts: [BaseField; 8] = self.draw_base_felts();
+        let felts: [BaseField; 4] = self.draw_base_felts();
         SecureField::from_m31_array(felts[..SECURE_EXTENSION_DEGREE].try_into().unwrap())
     }
 
