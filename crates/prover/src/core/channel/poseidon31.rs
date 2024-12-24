@@ -27,7 +27,7 @@ impl Channel for Poseidon31Channel {
     const BYTES_PER_HASH: usize = 32;
 
     fn trailing_zeros(&self) -> u32 {
-        let res = &self.sponge.state[0..4];
+        let res = &self.sponge.state[8..12];
 
         let mut bytes = [0u8; 16];
         bytes[0..4].copy_from_slice(&res[0].to_le_bytes());
