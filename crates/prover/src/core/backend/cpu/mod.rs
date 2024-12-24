@@ -6,6 +6,7 @@ mod grind;
 pub mod lookups;
 pub mod quotients;
 mod sha256;
+mod poseidon31;
 
 use std::fmt::Debug;
 
@@ -19,6 +20,7 @@ use crate::core::utils::bit_reverse;
 use crate::core::vcs::blake3_merkle::Blake3MerkleChannel;
 #[cfg(not(target_arch = "wasm32"))]
 use crate::core::vcs::poseidon252_merkle::Poseidon252MerkleChannel;
+use crate::core::vcs::poseidon31_merkle::Poseidon31MerkleChannel;
 use crate::core::vcs::sha256_merkle::Sha256MerkleChannel;
 
 #[derive(Copy, Clone, Debug, Deserialize, Serialize)]
@@ -27,6 +29,7 @@ pub struct CpuBackend;
 impl Backend for CpuBackend {}
 impl BackendForChannel<Sha256MerkleChannel> for CpuBackend {}
 impl BackendForChannel<Blake3MerkleChannel> for CpuBackend {}
+impl BackendForChannel<Poseidon31MerkleChannel> for CpuBackend {}
 #[cfg(not(target_arch = "wasm32"))]
 impl BackendForChannel<Poseidon252MerkleChannel> for CpuBackend {}
 

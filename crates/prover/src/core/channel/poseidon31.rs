@@ -7,22 +7,18 @@ use crate::core::fields::secure_column::SECURE_EXTENSION_DEGREE;
 
 #[derive(Clone, Default)]
 pub struct Poseidon31Channel {
-    sponge: Poseidon31Sponge,
+    pub sponge: Poseidon31Sponge,
 }
 
 impl Poseidon31Channel {
-    fn draw_base_felts(&mut self) -> [BaseField; 8] {
-        let u32s = self.sponge.squeeze(8);
+    fn draw_base_felts(&mut self) -> [BaseField; 4] {
+        let u32s = self.sponge.squeeze(4);
 
         [
             BaseField::from(u32s[0]),
             BaseField::from(u32s[1]),
             BaseField::from(u32s[2]),
             BaseField::from(u32s[3]),
-            BaseField::from(u32s[4]),
-            BaseField::from(u32s[5]),
-            BaseField::from(u32s[6]),
-            BaseField::from(u32s[7]),
         ]
     }
 }
@@ -31,7 +27,7 @@ impl Channel for Poseidon31Channel {
     const BYTES_PER_HASH: usize = 32;
 
     fn trailing_zeros(&self) -> u32 {
-        let res = &self.sponge.state[0..4];
+        let res = &self.sponge.state[8..12];
 
         let mut bytes = [0u8; 16];
         bytes[0..4].copy_from_slice(&res[0].to_le_bytes());
@@ -64,7 +60,7 @@ impl Channel for Poseidon31Channel {
     }
 
     fn draw_felt(&mut self) -> SecureField {
-        let felts: [BaseField; 8] = self.draw_base_felts();
+        let felts: [BaseField; 4] = self.draw_base_felts();
         SecureField::from_m31_array(felts[..SECURE_EXTENSION_DEGREE].try_into().unwrap())
     }
 
